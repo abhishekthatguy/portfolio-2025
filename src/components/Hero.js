@@ -25,9 +25,9 @@ export default function Hero() {
       >
         {/* Background image */}
         <div
-          className="w-[120vw] h-[120vh] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[0deg] opacity-40"
+          className="w-[120vw] h-[120vh] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[0deg] opacity-30"
           style={{
-            backgroundImage: "url('/hero-3.png')",
+            backgroundImage: "url('/hero-1.webp')",
             backgroundSize: 'contain',
             backgroundPosition: 'right',
             backgroundRepeat: 'no-repeat',
