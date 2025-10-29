@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import SocialWidget from "@/components/widget/SocialWidget";
 import DateTimeWidget from "@/components/widget/DateTimeWidget";
+import ExitIntentPopup from "@/components/partials/ExitIntentPopup";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -120,6 +121,7 @@ export default function RootLayout({ children }) {
         {children}
         <SocialWidget />
         <DateTimeWidget />
+        <ExitIntentPopup />
       </body>
     </html>
   );
