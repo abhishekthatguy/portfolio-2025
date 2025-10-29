@@ -1,20 +1,21 @@
 'use client';
 import { motion } from 'framer-motion';
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
+import Image from 'next/image';
 
 const container = {
   hidden: {},
   show: {
     transition: {
-      staggerChildren: 0.1, // Reduced from 0.18 for faster appearance
-      delayChildren: 0.1 // Start sooner
+      staggerChildren: 0.05, // Faster for LCP
+      delayChildren: 0 // Start immediately
     }
   }
 };
 
 const item = {
-  hidden: { opacity: 0, y: 20 }, // Reduced from 30
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } } // Faster, smoother easing
+  hidden: { opacity: 1, y: 0 }, // Start visible for LCP - no initial fade
+  show: { opacity: 1, y: 0, transition: { duration: 0, ease: [0.16, 1, 0.3, 1] } } // Instant - already visible
 };
 
 // Floating animation for continuous loop
@@ -84,12 +85,12 @@ const singhAnimation = {
 
 // Letter animation for character-by-character effect - optimized for LCP
 const letterContainer = {
-  hidden: { opacity: 1 },
+  hidden: { opacity: 1 }, // Visible for LCP
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.03, // Faster stagger
-      delayChildren: 0.05 // Reduced initial delay for faster LCP
+      staggerChildren: 0.03,
+      delayChildren: 0 // Start immediately for LCP
     }
   }
 };
@@ -114,17 +115,17 @@ const letterLoopAnimation = {
 
 const letterAnimation = {
   hidden: { 
-    opacity: 0, 
-    y: 15, // Reduced movement
-    scale: 0.9 // Less dramatic scale for smoother transition
+    opacity: 1, // Start visible for LCP - no fade in
+    y: 0, // No movement for initial render
+    scale: 1 // No scale for initial render
   },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      duration: 0.4, // Faster transition
-      ease: [0.16, 1, 0.3, 1] // Smoother easing
+      duration: 0, // Instant - already visible
+      ease: [0.16, 1, 0.3, 1]
     }
   }
 };
@@ -163,35 +164,33 @@ const subtitleLoopAnimation = {
   }
 };
 
-// Subtitle viewport entry and exit - optimized for performance
+// Subtitle viewport entry and exit - optimized for LCP
 const subtitleViewportAnimation = {
   initial: {
-    opacity: 0,
-    y: 25, // Reduced movement
-    scale: 0.96 // Less dramatic for smoother transition
-    // Removed blur for better performance
+    opacity: 1, // Visible for LCP
+    y: 0, // No movement for initial render
+    scale: 1 // No scale for initial render
   },
   whileInView: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      duration: 0.6, // Faster for better UX
-      ease: [0.16, 1, 0.3, 1], // Smooth cubic-bezier easing
-      delay: 0.1 // Reduced delay
+      duration: 0, // Instant - already visible
+      ease: [0.16, 1, 0.3, 1]
     }
   },
   exit: {
-    opacity: 0,
-    y: -20,
-    scale: 0.98,
+    opacity: 1, // Keep visible
+    y: 0,
+    scale: 1,
     transition: {
-      duration: 0.5, // Faster exit
+      duration: 0.5,
       ease: [0.16, 1, 0.3, 1]
     }
   },
   viewport: {
-    once: true, // Only animate once for better performance
+    once: true,
     amount: 0.3,
     margin: "-50px"
   }
@@ -237,115 +236,763 @@ const techStacks = [
   { name: 'CMS', color: '#4ECDC4', bgColor: 'rgba(78, 205, 196, 0.25)', glowColor: 'rgba(78, 205, 196, 0.5)', textShadow: '0 0 8px rgba(78, 205, 196, 0.6)' },
 ];
 
-// Particle Animation Component - optimized for performance
-const ParticleAnimation = () => {
-  // Generate random particles with fixed target positions - reduced count for performance
-  const particles = useMemo(() => {
-    return Array.from({ length: 30 }).map((_, i) => { // Reduced from 50 to 30
-      const startX = Math.random() * 100;
-      const startY = 100 + Math.random() * 20; // Start from bottom with some variation
-      const driftX = (Math.random() - 0.5) * 40; // Horizontal drift
-      const endY = startY - 400; // Move upward
-      
-      return {
-        id: i,
-        x: startX,
-        y: startY,
-        size: Math.random() * 4 + 2,
-        duration: Math.random() * 20 + 15,
-        delay: Math.random() * 5,
-        driftX: driftX,
-        endY: endY,
-      };
-    });
-  }, []);
+// Tech-Themed Water Droplet Ripple Effect Component
+const WaterDropletEffect = ({ sectionRef }) => {
+  const canvasRef = useRef(null);
+  const ripplesRef = useRef([]);
+  const particlesRef = useRef([]);
+  const isReadyRef = useRef(false);
 
-  // Generate sparkles with fixed positions - reduced for performance
-  const sparkles = useMemo(() => {
-    return Array.from({ length: 20 }).map((_, i) => ({ // Reduced from 30 to 20
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      duration: Math.random() * 3 + 2,
-      delay: Math.random() * 5,
-    }));
-  }, []);
+  // Tech-themed colors
+  const primaryColor = { r: 254, g: 119, b: 67 }; // #FE7743 Orange
+  const secondaryColor = { r: 0, g: 217, b: 255 }; // #00D9FF Cyan
+
+  // VIBGYOR (Rainbow) colors - Violet, Indigo, Blue, Green, Yellow, Orange, Red
+  const vibgyorColors = [
+    { r: 148, g: 0, b: 211 },   // Violet
+    { r: 75, g: 0, b: 130 },    // Indigo
+    { r: 0, g: 0, b: 255 },     // Blue
+    { r: 0, g: 255, b: 0 },     // Green
+    { r: 255, g: 255, b: 0 },   // Yellow
+    { r: 255, g: 165, b: 0 },   // Orange
+    { r: 255, g: 0, b: 0 },     // Red
+  ];
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const section = sectionRef?.current;
+    if (!canvas || !section) return;
+
+    const ctx = canvas.getContext('2d');
+    let animationId;
+    let cleanupFn = null;
+
+    function setupCanvas() {
+      // Initialize canvas size
+      const resizeCanvas = () => {
+        const rect = section.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+      };
+
+      resizeCanvas();
+      
+      let resizeTimeout;
+      const handleResize = () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(resizeCanvas, 250);
+      };
+      window.addEventListener('resize', handleResize, { passive: true });
+
+    // Tech Particle class for ripple effects
+    class TechParticle {
+      constructor(x, y, color, angle) {
+        this.x = x;
+        this.y = y;
+        this.vx = Math.cos(angle) * (2 + Math.random() * 3);
+        this.vy = Math.sin(angle) * (2 + Math.random() * 3);
+        this.life = 1;
+        this.decay = 0.015 + Math.random() * 0.01;
+        this.size = 2 + Math.random() * 3;
+        this.color = color;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life -= this.decay;
+        this.vx *= 0.98; // Friction
+        this.vy *= 0.98;
+        return this.life > 0;
+      }
+
+      draw() {
+        const alpha = this.life * 0.8;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.8})`;
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
+        ctx.fill();
+        
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    // Enhanced Tech Ripple class with VIBGYOR support
+    class TechRipple {
+      constructor(x, y, useVibgyor = false) {
+        this.x = x;
+        this.y = y;
+        this.radius = 0;
+        this.maxRadius = Math.max(canvas.width, canvas.height) * 1.2;
+        this.speed = 3 + Math.random() * 2;
+        this.opacity = 0.8;
+        this.useVibgyor = useVibgyor;
+        this.color = useVibgyor ? vibgyorColors[Math.floor(Math.random() * vibgyorColors.length)] : (Math.random() > 0.5 ? primaryColor : secondaryColor);
+        this.life = 1;
+        this.segments = 6 + Math.floor(Math.random() * 6); // Hexagonal segments
+        this.rotation = Math.random() * Math.PI * 2;
+        this.colorOffset = Math.random() * vibgyorColors.length; // For rainbow rotation
+        this.particles = [];
+        
+        // Create tech particles on spawn with VIBGYOR colors if enabled
+        for (let i = 0; i < 8; i++) {
+          const angle = (Math.PI * 2 / 8) * i;
+          const particleColor = useVibgyor 
+            ? vibgyorColors[Math.floor((i + this.colorOffset) % vibgyorColors.length)]
+            : this.color;
+          this.particles.push(new TechParticle(x, y, particleColor, angle));
+        }
+      }
+
+      // Get color at specific angle for rainbow gradient
+      getRainbowColor(angle) {
+        if (!this.useVibgyor) return this.color;
+        
+        // Normalize angle to 0-2π and map to VIBGYOR spectrum
+        const normalizedAngle = (angle % (Math.PI * 2)) / (Math.PI * 2);
+        const colorIndex = (normalizedAngle * vibgyorColors.length + this.colorOffset) % vibgyorColors.length;
+        const index1 = Math.floor(colorIndex);
+        const index2 = (index1 + 1) % vibgyorColors.length;
+        const t = colorIndex - index1;
+        
+        const c1 = vibgyorColors[index1];
+        const c2 = vibgyorColors[index2];
+        
+        return {
+          r: Math.round(c1.r + (c2.r - c1.r) * t),
+          g: Math.round(c1.g + (c2.g - c1.g) * t),
+          b: Math.round(c1.b + (c2.b - c1.b) * t)
+        };
+      }
+
+      update() {
+        this.radius += this.speed;
+        this.life = 1 - (this.radius / this.maxRadius);
+        this.opacity = this.life * 0.7;
+        this.rotation += 0.02;
+        
+        // Rotate VIBGYOR color offset for animated rainbow effect
+        if (this.useVibgyor) {
+          this.colorOffset += 0.05;
+          if (this.colorOffset >= vibgyorColors.length) {
+            this.colorOffset = 0;
+          }
+        }
+        
+        // Update particles
+        this.particles = this.particles.filter(p => p.update());
+        
+        return this.life > 0;
+      }
+
+      drawHexagon(x, y, radius, rotation) {
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const angle = (Math.PI / 3) * i + rotation;
+          const px = x + Math.cos(angle) * radius;
+          const py = y + Math.sin(angle) * radius;
+          if (i === 0) {
+            ctx.moveTo(px, py);
+          } else {
+            ctx.lineTo(px, py);
+          }
+        }
+        ctx.closePath();
+      }
+
+      draw() {
+        if (this.opacity <= 0) return;
+
+        const segments = this.segments;
+        const segmentAngle = (Math.PI * 2) / segments;
+        const innerRadius = this.radius * 0.85;
+        
+        // Draw hexagonal/circuit-like ripple pattern
+        for (let i = 0; i < segments; i++) {
+          const angle = segmentAngle * i + this.rotation;
+          const startAngle = angle - segmentAngle / 3;
+          const endAngle = angle + segmentAngle / 3;
+          
+          // Get color for this segment (VIBGYOR or solid)
+          const segmentColor = this.useVibgyor ? this.getRainbowColor(angle) : this.color;
+          
+          // Outer arc segment with glow
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, startAngle, endAngle);
+          ctx.strokeStyle = `rgba(${segmentColor.r}, ${segmentColor.g}, ${segmentColor.b}, ${this.opacity})`;
+          ctx.lineWidth = 3;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = `rgba(${segmentColor.r}, ${segmentColor.g}, ${segmentColor.b}, ${this.opacity * 0.6})`;
+          ctx.stroke();
+          
+          // Inner arc segment with VIBGYOR gradient
+          if (this.radius > 30) {
+            const innerColor = this.useVibgyor ? this.getRainbowColor(angle + Math.PI) : this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, innerRadius, startAngle, endAngle);
+            ctx.strokeStyle = `rgba(${innerColor.r}, ${innerColor.g}, ${innerColor.b}, ${this.opacity * 0.4})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+        }
+        
+        // Circuit line connections between segments with VIBGYOR gradient
+        if (this.radius > 40 && segments >= 6) {
+          for (let i = 0; i < segments; i++) {
+            const angle1 = segmentAngle * i + this.rotation;
+            const angle2 = segmentAngle * ((i + 1) % segments) + this.rotation;
+            const midRadius = this.radius * 0.92;
+            
+            if (this.useVibgyor) {
+              // Create gradient line for VIBGYOR
+              const gradient = ctx.createLinearGradient(
+                this.x + Math.cos(angle1) * midRadius,
+                this.y + Math.sin(angle1) * midRadius,
+                this.x + Math.cos(angle2) * midRadius,
+                this.y + Math.sin(angle2) * midRadius
+              );
+              const c1 = this.getRainbowColor(angle1);
+              const c2 = this.getRainbowColor(angle2);
+              gradient.addColorStop(0, `rgba(${c1.r}, ${c1.g}, ${c1.b}, ${this.opacity * 0.3})`);
+              gradient.addColorStop(1, `rgba(${c2.r}, ${c2.g}, ${c2.b}, ${this.opacity * 0.3})`);
+              
+              ctx.beginPath();
+              ctx.moveTo(
+                this.x + Math.cos(angle1) * midRadius,
+                this.y + Math.sin(angle1) * midRadius
+              );
+              ctx.lineTo(
+                this.x + Math.cos(angle2) * midRadius,
+                this.y + Math.sin(angle2) * midRadius
+              );
+              ctx.strokeStyle = gradient;
+            } else {
+              ctx.beginPath();
+              ctx.moveTo(
+                this.x + Math.cos(angle1) * midRadius,
+                this.y + Math.sin(angle1) * midRadius
+              );
+              ctx.lineTo(
+                this.x + Math.cos(angle2) * midRadius,
+                this.y + Math.sin(angle2) * midRadius
+              );
+              ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${this.opacity * 0.3})`;
+            }
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+        
+        // Digital glitch effect - random lines with VIBGYOR
+        if (Math.random() < 0.1 && this.radius > 50) {
+          const glitchAngle = Math.random() * Math.PI * 2;
+          const glitchLength = 20 + Math.random() * 30;
+          const glitchColor = this.useVibgyor ? this.getRainbowColor(glitchAngle) : this.color;
+          
+          ctx.beginPath();
+          ctx.moveTo(
+            this.x + Math.cos(glitchAngle) * this.radius,
+            this.y + Math.sin(glitchAngle) * this.radius
+          );
+          ctx.lineTo(
+            this.x + Math.cos(glitchAngle) * (this.radius + glitchLength),
+            this.y + Math.sin(glitchAngle) * (this.radius + glitchLength)
+          );
+          ctx.strokeStyle = `rgba(${glitchColor.r}, ${glitchColor.g}, ${glitchColor.b}, ${this.opacity * 0.5})`;
+          ctx.lineWidth = 2;
+          ctx.shadowBlur = 5;
+          ctx.stroke();
+        }
+        
+        // Hexagonal center core with VIBGYOR
+        if (this.radius < 80) {
+          const centerColor = this.useVibgyor ? this.getRainbowColor(this.rotation) : this.color;
+          this.drawHexagon(this.x, this.y, Math.min(this.radius * 0.3, 25), this.rotation);
+          ctx.fillStyle = `rgba(${centerColor.r}, ${centerColor.g}, ${centerColor.b}, ${this.opacity * 1.2})`;
+          ctx.shadowBlur = 15;
+          ctx.fill();
+        }
+        
+        // Circuit nodes at segment points with VIBGYOR
+        for (let i = 0; i < segments; i++) {
+          const angle = segmentAngle * i + this.rotation;
+          const nodeRadius = this.radius * 0.88;
+          const nodeX = this.x + Math.cos(angle) * nodeRadius;
+          const nodeY = this.y + Math.sin(angle) * nodeRadius;
+          const nodeColor = this.useVibgyor ? this.getRainbowColor(angle) : this.color;
+          
+          ctx.beginPath();
+          ctx.arc(nodeX, nodeY, 3, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${nodeColor.r}, ${nodeColor.g}, ${nodeColor.b}, ${this.opacity * 0.9})`;
+          ctx.shadowBlur = 8;
+          ctx.fill();
+        }
+        
+        ctx.shadowBlur = 0;
+        
+        // Draw particles
+        this.particles.forEach(p => p.draw());
+      }
+    }
+
+    // Create tech ripple on click
+    const handleClick = (e) => {
+      // Check if clicked element is a button or link
+      const target = e.target;
+      const isButton = target.tagName === 'BUTTON' || 
+                      target.tagName === 'A' ||
+                      target.closest('a') !== null ||
+                      target.closest('button') !== null ||
+                      target.classList.contains('cursor-pointer');
+      
+      // Use VIBGYOR colors if not clicking on a button/link
+      const useVibgyor = !isButton;
+      
+      const rect = section.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // Create 1-2 tech ripples with VIBGYOR or tech colors
+      const rippleCount = 1 + Math.floor(Math.random() * 2);
+      for (let i = 0; i < rippleCount; i++) {
+        const offset = (Math.random() - 0.5) * 25;
+        ripplesRef.current.push(new TechRipple(x + offset, y + offset, useVibgyor));
+      }
+    };
+
+      // Animation loop
+      const animate = () => {
+        if (!isReadyRef.current) return;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Update and draw ripples
+        ripplesRef.current = ripplesRef.current.filter(ripple => {
+          const isAlive = ripple.update();
+          if (isAlive) ripple.draw();
+          return isAlive;
+        });
+
+        animationId = requestAnimationFrame(animate);
+      };
+
+      // Start animation
+      animate();
+
+      // Add click event listener
+      section.addEventListener('click', handleClick, { passive: true });
+
+      // Store cleanup function
+      cleanupFn = () => {
+        window.removeEventListener('resize', handleResize);
+        clearTimeout(resizeTimeout);
+        section.removeEventListener('click', handleClick);
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+        ripplesRef.current = [];
+        particlesRef.current = [];
+      };
+    }
+
+    // Defer initialization until after initial render
+    const init = () => {
+      if (isReadyRef.current) return;
+      
+      const start = window.requestIdleCallback || ((cb) => setTimeout(cb, 100));
+      start(() => {
+        isReadyRef.current = true;
+        setupCanvas();
+      });
+    };
+
+    if (document.readyState === 'complete') {
+      init();
+    } else {
+      window.addEventListener('load', init, { once: true });
+      setTimeout(init, 200);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      isReadyRef.current = false;
+      if (cleanupFn) cleanupFn();
+    };
+  }, [sectionRef]);
 
   return (
-    <div className="absolute inset-0 w-full h-full pointer-events-none z-[5] overflow-hidden">
-      {particles.map((particle) => (
-        <motion.div
-          key={particle.id}
-          className="absolute rounded-full"
-          style={{
-            left: `${particle.x}%`,
-            top: `${particle.y}%`,
-            width: `${particle.size}px`,
-            height: `${particle.size}px`,
-            background: 'radial-gradient(circle, rgba(254, 119, 67, 0.6), rgba(254, 119, 67, 0.2), transparent)',
-            boxShadow: '0 0 10px rgba(254, 119, 67, 0.4)',
-          }}
-          animate={{
-            y: [0, particle.endY],
-            x: [0, particle.driftX],
-            opacity: [0, 1, 1, 0],
-            scale: [0.5, 1, 1.2, 0.5],
-          }}
-          transition={{
-            duration: particle.duration,
-            repeat: Infinity,
-            delay: particle.delay,
-            ease: "linear",
-          }}
-        />
-      ))}
-      {/* Additional smaller sparkles */}
-      {sparkles.map((sparkle) => (
-        <motion.div
-          key={`sparkle-${sparkle.id}`}
-          className="absolute rounded-full"
-          style={{
-            left: `${sparkle.x}%`,
-            top: `${sparkle.y}%`,
-            width: '3px',
-            height: '3px',
-            background: 'rgba(255, 255, 255, 0.8)',
-            boxShadow: '0 0 6px rgba(255, 255, 255, 0.6)',
-          }}
-          animate={{
-            opacity: [0, 1, 0],
-            scale: [0, 1, 0],
-          }}
-          transition={{
-            duration: sparkle.duration,
-            repeat: Infinity,
-            delay: sparkle.delay,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none z-[6]"
+      style={{ background: 'transparent' }}
+    />
+  );
+};
+
+// Plexus Network Animation Component - Canvas-based, performant
+const ParticleAnimation = () => {
+  const canvasRef = useRef(null);
+
+  // Tech-themed colors
+  const primaryColor = { r: 254, g: 119, b: 67 }; // #FE7743 Orange
+  const secondaryColor = { r: 0, g: 217, b: 255 }; // #00D9FF Cyan
+  
+  // Plexus network configuration - optimized for initial load
+  const config = useMemo(() => ({
+    particleCount: 30, // Reduced initial count for faster LCP
+    connectionDistance: 200, // Increased distance threshold for better connectivity
+    particleSpeed: 0.5, // Movement speed
+    particleRadius: 2.5, // Slightly larger particles
+    lineWidth: 2, // Thicker connection lines for better visibility
+    minConnections: 1, // Minimum connections per particle to ensure connectivity
+  }), []);
+
+  const isLoadedRef = useRef(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let animationId;
+    let edgesCache = null;
+    let frameSkip = 0;
+    const FRAME_SKIP = 1; // Update MST every 2 frames for performance
+
+    // Initialize canvas size
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      edgesCache = null; // Invalidate cache on resize
+    };
+    
+    resizeCanvas();
+    
+    // Optimized resize handler with debounce
+    let resizeTimeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(resizeCanvas, 250);
+    };
+    window.addEventListener('resize', handleResize, { passive: true });
+
+    // Particle class
+    class Particle {
+      constructor() {
+        this.reset();
+        this.color = Math.random() > 0.5 ? primaryColor : secondaryColor;
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * config.particleSpeed;
+        this.vy = (Math.random() - 0.5) * config.particleSpeed;
+        this.life = Math.random();
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Bounce off edges
+        if (this.x < 0 || this.x > canvas.width) {
+          this.vx *= -1;
+          this.x = Math.max(0, Math.min(canvas.width, this.x));
+        }
+        if (this.y < 0 || this.y > canvas.height) {
+          this.vy *= -1;
+          this.y = Math.max(0, Math.min(canvas.height, this.y));
+        }
+
+        // Smooth random direction changes
+        if (Math.random() < 0.02) {
+          this.vx += (Math.random() - 0.5) * 0.2;
+          this.vy += (Math.random() - 0.5) * 0.2;
+          
+          // Limit speed
+          const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+          if (speed > config.particleSpeed * 2) {
+            this.vx = (this.vx / speed) * config.particleSpeed * 2;
+            this.vy = (this.vy / speed) * config.particleSpeed * 2;
+          }
+        }
+
+        this.life += 0.005;
+        if (this.life > 1) this.life -= 1;
+      }
+
+      draw() {
+        // Pulsing glow effect
+        const glowIntensity = 0.7 + Math.sin(this.life * Math.PI * 2) * 0.3;
+        const alpha = 0.85 * glowIntensity;
+        
+        // Enhanced outer glow
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.8})`;
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, config.particleRadius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
+        ctx.fill();
+        
+        // Inner bright core
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, config.particleRadius * 0.6, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 1.2})`;
+        ctx.fill();
+        
+        // Reset shadow
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
+      }
+    }
+
+    // Optimized animation loop with cached MST
+    const animate = () => {
+      if (!isLoadedRef.current) return;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Initialize particles on first frame if not already done
+      if (particles.length === 0) {
+        particles = Array.from({ length: config.particleCount }, () => new Particle());
+      }
+
+      // Update particles
+      particles.forEach(particle => {
+        particle.update();
+      });
+
+      const connections = new Set();
+      const getConnectionKey = (i, j) => {
+        return i < j ? `${i}-${j}` : `${j}-${i}`;
+      };
+
+      const maxDistanceSquared = config.connectionDistance * config.connectionDistance;
+      
+      // Optimize: Calculate MST only every N frames or when cache is invalid
+      frameSkip++;
+      const shouldRecalculateMST = !edgesCache || frameSkip > FRAME_SKIP;
+
+      if (shouldRecalculateMST) {
+        frameSkip = 0;
+        
+        // Step 1: Build Minimum Spanning Tree (MST) - cache the edges
+        const edges = [];
+
+        // Collect ALL possible edges (no distance limit for MST to guarantee connectivity)
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const distSquared = dx * dx + dy * dy;
+
+            edges.push({
+              i,
+              j,
+              dist: Math.sqrt(distSquared),
+              distSquared
+            });
+          }
+        }
+
+        // Sort edges by distance (Kruskal's algorithm - shortest first)
+        edges.sort((a, b) => a.distSquared - b.distSquared);
+
+        // Build MST using Union-Find
+        const uf = new UnionFind(particles.length);
+        const mstConnections = new Set();
+        let mstEdges = 0;
+
+        for (const edge of edges) {
+          if (uf.union(edge.i, edge.j)) {
+            const key = getConnectionKey(edge.i, edge.j);
+            mstConnections.add(key);
+            
+            // Store MST edge for drawing
+            if (!edgesCache) edgesCache = { mst: [], additional: [] };
+            if (mstEdges === 0) edgesCache.mst = [];
+            edgesCache.mst.push({ i: edge.i, j: edge.j, dist: edge.dist });
+            
+            mstEdges++;
+            if (mstEdges === particles.length - 1) break;
+          }
+        }
+
+        // Step 2: Cache additional connections within threshold
+        edgesCache.additional = [];
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const key = getConnectionKey(i, j);
+            if (mstConnections.has(key)) continue;
+
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const distSquared = dx * dx + dy * dy;
+
+            if (distSquared < maxDistanceSquared) {
+              edgesCache.additional.push({
+                i, j, dist: Math.sqrt(distSquared)
+              });
+            }
+          }
+        }
+      }
+
+      // Draw connections from cache (much faster)
+      if (edgesCache) {
+        edgesCache.mst.forEach(edge => {
+          drawConnection(particles[edge.i], particles[edge.j], edge.dist);
+          connections.add(getConnectionKey(edge.i, edge.j));
+        });
+
+        edgesCache.additional.forEach(edge => {
+          const key = getConnectionKey(edge.i, edge.j);
+          if (!connections.has(key)) {
+            drawConnection(particles[edge.i], particles[edge.j], edge.dist);
+          }
+        });
+      }
+
+      // Draw particles on top of connections
+      particles.forEach(particle => {
+        particle.draw();
+      });
+
+      animationId = requestAnimationFrame(animate);
+    };
+
+    // Defer animation start until after initial paint
+    const startAnimation = () => {
+      if (isLoadedRef.current) return;
+      isLoadedRef.current = true;
+      
+      // Initialize particles now
+      particles = Array.from({ length: config.particleCount }, () => new Particle());
+      
+      // Use requestIdleCallback if available, else setTimeout
+      const start = (window.requestIdleCallback || ((cb) => setTimeout(cb, 50)));
+      start(() => {
+        animate();
+      });
+    };
+
+    // Start after page load
+    if (document.readyState === 'complete') {
+      startAnimation();
+    } else {
+      window.addEventListener('load', startAnimation, { once: true });
+      // Fallback timeout
+      setTimeout(startAnimation, 300);
+    }
+
+    // Draw connection line between particles with enhanced glow
+    const drawConnection = (p1, p2, dist) => {
+      const opacity = 1 - (dist / config.connectionDistance);
+      const lineAlpha = opacity * 0.7; // Increased opacity for better visibility
+      
+      // Use gradient for colorful connections - blends particle colors
+      const gradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+      const midColor = {
+        r: (p1.color.r + p2.color.r) / 2,
+        g: (p1.color.g + p2.color.g) / 2,
+        b: (p1.color.b + p2.color.b) / 2
+      };
+      
+      gradient.addColorStop(0, `rgba(${p1.color.r}, ${p1.color.g}, ${p1.color.b}, ${lineAlpha})`);
+      gradient.addColorStop(0.5, `rgba(${midColor.r}, ${midColor.g}, ${midColor.b}, ${lineAlpha * 1.3})`);
+      gradient.addColorStop(1, `rgba(${p2.color.r}, ${p2.color.g}, ${p2.color.b}, ${lineAlpha})`);
+      
+      // Draw glowing line with shadow effect
+      ctx.shadowBlur = 15 * opacity;
+      ctx.shadowColor = `rgba(${midColor.r}, ${midColor.g}, ${midColor.b}, ${lineAlpha * 0.8})`;
+      
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = config.lineWidth * opacity * 1.5;
+      ctx.stroke();
+      
+      // Reset shadow for next operations
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = 'transparent';
+    };
+
+    // Union-Find data structure for MST algorithm
+    class UnionFind {
+      constructor(size) {
+        this.parent = Array.from({ length: size }, (_, i) => i);
+        this.rank = new Array(size).fill(0);
+      }
+
+      find(x) {
+        if (this.parent[x] !== x) {
+          this.parent[x] = this.find(this.parent[x]); // Path compression
+        }
+        return this.parent[x];
+      }
+
+      union(x, y) {
+        const rootX = this.find(x);
+        const rootY = this.find(y);
+
+        if (rootX === rootY) return false; // Already connected
+
+        // Union by rank
+        if (this.rank[rootX] < this.rank[rootY]) {
+          this.parent[rootX] = rootY;
+        } else if (this.rank[rootX] > this.rank[rootY]) {
+          this.parent[rootY] = rootX;
+        } else {
+          this.parent[rootY] = rootX;
+          this.rank[rootX]++;
+        }
+        return true; // Successfully connected
+      }
+    }
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimeout);
+      isLoadedRef.current = false;
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+    };
+  }, [config, primaryColor, secondaryColor]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none z-[5]"
+      style={{ background: 'transparent' }}
+    />
   );
 };
 
 export default function Hero() {
+  const sectionRef = useRef(null);
+
   return (
-    <section className="h-screen flex items-center justify-center bg-black relative overflow-hidden">
+    <section 
+      ref={sectionRef}
+      className="h-screen flex items-center justify-center bg-black relative overflow-hidden"
+    >
       {/* Background image container */}
       <div
         className="absolute inset-0 w-full h-full pointer-events-none z-0"
         aria-hidden="true"
       >
-        {/* Background image with gradient border dissolve */}
+        {/* Background image with gradient border dissolve - Optimized with Next.js Image */}
         <motion.div
           className="absolute inset-0 w-full h-full relative"
-          style={{
-            backgroundImage: "url('/hero-1.webp')",
-            backgroundSize: 'contain',
-            backgroundPosition: 'top right',
-            backgroundRepeat: 'no-repeat',
-            opacity: 1,
-          }}
           animate={{
             opacity: [1, 0.5, 1],
             scale: [1, 1.01, 1],
@@ -355,7 +1002,20 @@ export default function Hero() {
             repeat: Infinity,
             ease: "easeInOut"
           }}
+          style={{ contain: 'layout style paint' }}
         >
+          <Image
+            src="/hero-1.webp"
+            alt="Hero background"
+            fill
+            priority
+            quality={85}
+            sizes="100vw"
+            className="object-contain object-top object-right"
+            style={{
+              opacity: 1,
+            }}
+          />
           {/* Gradient borders to dissolve edges */}
           <div 
             className="absolute inset-0" 
@@ -389,36 +1049,38 @@ export default function Hero() {
       
       {/* Particle Animation Overlay */}
       <ParticleAnimation />
+      {/* Water Droplet Ripple Effect */}
+      <WaterDropletEffect sectionRef={sectionRef} />
       {/* Content - optimized for LCP */}
-      <div className="container mx-auto px-4 py-8 text-center relative z-10">
+      <div className="container mx-auto px-4 py-8 text-center relative z-10" style={{ contain: 'layout style' }}>
         <motion.div
           variants={container}
           initial="hidden"
           animate="show"
           className="mb-4 md:mb-6"
-          style={{ willChange: 'contents' }} // Performance hint
         >
           <motion.div
             variants={item}
-            className="mb-4 md:mb-6"
+            className="mb-4 md:mb-2"
             animate={floatingAnimation}
             initial={false} // Prevent blocking initial render
           >
             <motion.h1 
-              className="text-5xl md:text-8xl lg:text-9xl font-bold mb-2 leading-tight"
+              className="text-5xl md:text-8xl lg:text-9xl font-bold mb-0 leading-tight"
               style={{
-                lineHeight: "1.1", // Slightly relaxed from tight to allow descenders
-                overflow: "visible", // Ensure descenders aren't clipped
-                paddingBottom: "0.05em" // Small padding for descender space
+                lineHeight: "1",
+                overflow: "visible",
+                paddingBottom: "0.05em",
+                contain: 'layout style'
               }}
               {...titleContainerAnimation}
               initial={false} // Prevent blocking initial render for LCP
             >
-              {/* Abhishek with letter-by-letter animation */}
+              {/* Abhishek with letter-by-letter animation - optimized for LCP */}
               <motion.span
                 className="inline-block relative"
                 variants={letterContainer}
-                initial="hidden"
+                initial="visible" // Start visible for LCP, animate later
                 animate="visible"
               >
                 {["A", "b", "h", "i", "s", "h", "e", "k"].map((letter, index) => (
@@ -466,8 +1128,8 @@ export default function Hero() {
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
                   display: "inline-block",
-                  lineHeight: "1.15", // Slightly increased for descenders
-                  paddingBottom: "0.15em", // Increased space for descenders like "g"
+                  lineHeight: "1", // Slightly increased for descenders
+                  paddingBottom: "0.1em", // Increased space for descenders like "g"
                   paddingTop: "0.02em", // Small top padding for balance
                   verticalAlign: "baseline", // Align properly with baseline
                   overflow: "visible" // Ensure no clipping
@@ -487,10 +1149,7 @@ export default function Hero() {
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}
-            initial={subtitleViewportAnimation.initial}
-            whileInView={subtitleViewportAnimation.whileInView}
-            exit={subtitleViewportAnimation.exit}
-            viewport={subtitleViewportAnimation.viewport}
+            initial={false}
             animate={subtitleLoopAnimation}
           >
             Senior Frontend Architect & Full-Stack Developer
