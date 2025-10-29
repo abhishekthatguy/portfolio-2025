@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "node scripts/deploy.js",
+    "deploy:quick": "vercel --prod",
+    "deploy:local": "vercel dev"
   },
   "dependencies": {
     "framer-motion": "^12.10.5",

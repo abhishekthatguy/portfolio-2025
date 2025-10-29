@@ -34,7 +34,8 @@ const Contact = () => {
     setStatus({ type: 'loading', message: 'Sending message...' });
 
     try {
-      const response = await fetch('http://localhost:5001/api/submit-form', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api/submit-form';
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
