@@ -111,7 +111,7 @@ const SocialWidget = () => {
       bgGradient: 'from-blue-400 to-blue-500'
     },
     mail: {
-      url: 'mailto:your-email@example.com',
+      url: 'mailto:abhishekthatguy@gmail.com',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
           <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/>
@@ -193,17 +193,100 @@ const SocialWidget = () => {
 
   return (
     <>
-      {/* Collapsed state - show 4 icons: mail, whatsapp, chatbot, call */}
+      {/* Mobile: Always show 4 icons (mail, whatsapp, chatbot, call) - no collapsible */}
+      <motion.div
+        className="fixed bottom-5 right-4 md:hidden z-50 select-none"
+        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <div className="bg-black/40 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-2.5 flex flex-col gap-2 relative overflow-visible">
+          {/* Mail Icon */}
+          <motion.a
+            href={socialLinks.mail.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`group relative w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br ${socialLinks.mail.bgGradient} hover:shadow-2xl transition-all duration-300 border border-white/20 hover:border-white/40 backdrop-blur-sm overflow-visible`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05, duration: 0.3 }}
+            whileHover={{ scale: 1.1, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            aria-label={socialLinks.mail.label}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 rounded-xl"></div>
+            <div className="relative z-10 text-white">
+              {socialLinks.mail.icon}
+            </div>
+          </motion.a>
+
+          {/* WhatsApp Icon */}
+          <motion.a
+            href={socialLinks.whatsapp.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`group relative w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br ${socialLinks.whatsapp.bgGradient} hover:shadow-2xl transition-all duration-300 border border-white/20 hover:border-white/40 backdrop-blur-sm overflow-visible`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
+            whileHover={{ scale: 1.1, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            aria-label={socialLinks.whatsapp.label}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 rounded-xl"></div>
+            <div className="relative z-10 text-white">
+              {socialLinks.whatsapp.icon}
+            </div>
+          </motion.a>
+
+          {/* Chatbot Icon */}
+          <motion.div
+            className="group relative w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 transition-all duration-300 cursor-pointer border border-white/20 hover:border-white/40 backdrop-blur-sm hover:shadow-2xl overflow-visible"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.3 }}
+            whileHover={{ scale: 1.1, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            title="Chat Bot (Coming Soon)"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 rounded-xl"></div>
+            <div className="relative z-10 text-white">
+              {chatbotIcon}
+            </div>
+          </motion.div>
+
+          {/* Call Icon */}
+          <motion.a
+            href={socialLinks.call.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`group relative w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br ${socialLinks.call.bgGradient} hover:shadow-2xl transition-all duration-300 border border-white/20 hover:border-white/40 backdrop-blur-sm overflow-visible`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
+            whileHover={{ scale: 1.1, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            aria-label={socialLinks.call.label}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 rounded-xl"></div>
+            <div className="relative z-10 text-white">
+              {socialLinks.call.icon}
+            </div>
+          </motion.a>
+        </div>
+      </motion.div>
+
+      {/* Desktop: Collapsed state - show 4 icons: mail, whatsapp, chatbot, call */}
       {!isExpanded && (
         <motion.div
-          className="fixed bottom-[100px] right-5 z-50 select-none"
+          className="hidden md:flex fixed bottom-[100px] right-5 z-50 select-none"
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.8, y: 20 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="bg-black/40 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-3 flex flex-col gap-2 relative overflow-visible">
-            {/* Expand button */}
+            {/* Expand button - Desktop only */}
             <motion.button
               onClick={handleExpand}
               className="absolute -top-3 -right-3 w-7 h-7 bg-gradient-to-br from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold transition-all shadow-lg border-2 border-white/20 z-10"
@@ -308,11 +391,11 @@ const SocialWidget = () => {
         </motion.div>
       )}
 
-      {/* Expanded state - full widget */}
+      {/* Desktop: Expanded state - full widget */}
       {isExpanded && (
         <AnimatePresence>
           <motion.div
-            className="fixed bottom-[100px] right-5 z-50 select-none"
+            className="hidden md:flex fixed bottom-[100px] right-5 z-50 select-none"
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}

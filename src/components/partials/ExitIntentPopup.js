@@ -68,45 +68,19 @@ const ExitIntentPopup = () => {
     }, 100);
   };
 
-  // Block navigation when popup is open
+  // Allow Escape key to close popup
   useEffect(() => {
     if (!isOpen) return;
 
-    // Block browser close/refresh
-    const handleBeforeUnload = (e) => {
-      e.preventDefault();
-      e.returnValue = '';
-      return '';
-    };
-
-    // Block back/forward navigation
-    const handlePopState = (e) => {
-      window.history.pushState(null, '', window.location.href);
-    };
-
-    // Block keyboard shortcuts (Escape should close, but other shortcuts should be blocked)
     const handleKeyDown = (e) => {
-      // Allow Escape to close
       if (e.key === 'Escape') {
         handleClose();
-        return;
-      }
-      // Block other navigation shortcuts
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R' || e.key === 'w' || e.key === 'W')) {
-        e.preventDefault();
       }
     };
 
-    // Push state to block back button
-    window.history.pushState(null, '', window.location.href);
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('popstate', handlePopState);
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen]);
@@ -127,13 +101,15 @@ const ExitIntentPopup = () => {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop - non-clickable, prevents interaction */}
+          {/* Backdrop - clickable to close */}
           <motion.div
-            className="fixed inset-0 bg-black/70 dark:bg-black/85 backdrop-blur-md z-[100]"
+            className="fixed inset-0 bg-black/70 dark:bg-black/85 backdrop-blur-md z-[100] cursor-pointer"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            onClick={handleClose}
+            aria-label="Close popup"
           />
 
           {/* Popup Modal */}
@@ -150,6 +126,7 @@ const ExitIntentPopup = () => {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.85, opacity: 0, y: 30 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              onClick={(e) => e.stopPropagation()}
             >
               {/* Gradient Background Overlay */}
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-cyan-500/10 dark:from-blue-400/20 dark:via-purple-400/20 dark:to-cyan-400/20 pointer-events-none"></div>

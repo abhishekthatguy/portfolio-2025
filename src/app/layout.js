@@ -3,7 +3,10 @@ import Script from "next/script";
 import "./globals.css";
 import SocialWidget from "@/components/widget/SocialWidget";
 import DateTimeWidget from "@/components/widget/DateTimeWidget";
+import FloatingBookAppointment from "@/components/widget/FloatingBookAppointment";
 import ExitIntentPopup from "@/components/partials/ExitIntentPopup";
+import TopBanner from "@/components/partials/TopBanner";
+import ThemeToggle from "@/components/widget/ThemeToggle";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -94,12 +97,48 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning style={{ scrollBehavior: 'smooth' }}>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#000000" />
         <link rel="manifest" href="/manifest.json" />
+        
+        {/* Theme initialization script - prevents flash of unstyled content */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const getSystemTheme = () => {
+                  if (typeof window !== 'undefined') {
+                    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  }
+                  return 'light';
+                };
+                
+                const getTheme = () => {
+                  try {
+                    const stored = localStorage.getItem('theme-preference');
+                    if (stored && ['light', 'dark', 'system'].includes(stored)) {
+                      return stored === 'system' ? getSystemTheme() : stored;
+                    }
+                  } catch (e) {}
+                  return getSystemTheme();
+                };
+                
+                const theme = getTheme();
+                document.documentElement.classList.add(theme);
+                document.documentElement.setAttribute('data-theme', theme);
+                
+                const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+                if (metaThemeColor) {
+                  metaThemeColor.setAttribute('content', theme === 'dark' ? '#000000' : '#ffffff');
+                }
+              })();
+            `,
+          }}
+        />
+        
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personStructuredData) }}
@@ -118,9 +157,12 @@ export default function RootLayout({ children }) {
         </Script>
       </head>
       <body className={inter.className}>
+        <TopBanner />
         {children}
         <SocialWidget />
+        <FloatingBookAppointment />
         <DateTimeWidget />
+        <ThemeToggle />
         <ExitIntentPopup />
       </body>
     </html>

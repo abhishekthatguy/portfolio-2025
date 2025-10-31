@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion';
 import { useMemo, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import { useTheme } from '@/hooks/useTheme';
 
 const container = {
   hidden: {},
@@ -242,10 +243,28 @@ const WaterDropletEffect = ({ sectionRef }) => {
   const ripplesRef = useRef([]);
   const particlesRef = useRef([]);
   const isReadyRef = useRef(false);
+  const { getEffectiveTheme } = useTheme();
 
-  // Tech-themed colors
-  const primaryColor = { r: 254, g: 119, b: 67 }; // #FE7743 Orange
-  const secondaryColor = { r: 0, g: 217, b: 255 }; // #00D9FF Cyan
+  // Tech-themed colors - theme-aware
+  const getThemeColors = () => {
+    const theme = getEffectiveTheme();
+    if (theme === 'dark') {
+      return {
+        primaryColor: { r: 254, g: 119, b: 67 }, // #FE7743 Orange
+        secondaryColor: { r: 0, g: 217, b: 255 }, // #00D9FF Cyan
+      };
+    } else {
+      // Light theme - slightly darker/more vibrant for visibility
+      return {
+        primaryColor: { r: 238, g: 100, b: 50 }, // Slightly darker orange
+        secondaryColor: { r: 0, g: 180, b: 220 }, // Slightly darker cyan
+      };
+    }
+  };
+  
+  const themeColors = getThemeColors();
+  const primaryColor = themeColors.primaryColor;
+  const secondaryColor = themeColors.secondaryColor;
 
   // VIBGYOR (Rainbow) colors - Violet, Indigo, Blue, Green, Yellow, Orange, Red
   const vibgyorColors = [
@@ -266,6 +285,10 @@ const WaterDropletEffect = ({ sectionRef }) => {
     const ctx = canvas.getContext('2d');
     let animationId;
     let cleanupFn = null;
+    
+    // Get current theme colors - will be re-evaluated on theme change
+    const currentTheme = getEffectiveTheme();
+    const currentColors = getThemeColors();
 
     function setupCanvas() {
       // Initialize canvas size
@@ -284,7 +307,7 @@ const WaterDropletEffect = ({ sectionRef }) => {
       };
       window.addEventListener('resize', handleResize, { passive: true });
 
-    // Tech Particle class for ripple effects
+    // Tech Particle class for ripple effects - updated to use theme colors
     class TechParticle {
       constructor(x, y, color, angle) {
         this.x = x;
@@ -294,7 +317,8 @@ const WaterDropletEffect = ({ sectionRef }) => {
         this.life = 1;
         this.decay = 0.015 + Math.random() * 0.01;
         this.size = 2 + Math.random() * 3;
-        this.color = color;
+        // Use provided color or fall back to theme colors
+        this.color = color || (Math.random() > 0.5 ? currentColors.primaryColor : currentColors.secondaryColor);
       }
 
       update() {
@@ -320,7 +344,7 @@ const WaterDropletEffect = ({ sectionRef }) => {
       }
     }
 
-    // Enhanced Tech Ripple class with VIBGYOR support
+    // Enhanced Tech Ripple class with VIBGYOR support - uses theme colors
     class TechRipple {
       constructor(x, y, useVibgyor = false) {
         this.x = x;
@@ -330,7 +354,8 @@ const WaterDropletEffect = ({ sectionRef }) => {
         this.speed = 3 + Math.random() * 2;
         this.opacity = 0.8;
         this.useVibgyor = useVibgyor;
-        this.color = useVibgyor ? vibgyorColors[Math.floor(Math.random() * vibgyorColors.length)] : (Math.random() > 0.5 ? primaryColor : secondaryColor);
+        // Use current theme colors
+        this.color = useVibgyor ? vibgyorColors[Math.floor(Math.random() * vibgyorColors.length)] : (Math.random() > 0.5 ? currentColors.primaryColor : currentColors.secondaryColor);
         this.life = 1;
         this.segments = 6 + Math.floor(Math.random() * 6); // Hexagonal segments
         this.rotation = Math.random() * Math.PI * 2;
@@ -538,30 +563,36 @@ const WaterDropletEffect = ({ sectionRef }) => {
       }
     }
 
-    // Create tech ripple on click
-    const handleClick = (e) => {
-      // Check if clicked element is a button or link
-      const target = e.target;
-      const isButton = target.tagName === 'BUTTON' || 
-                      target.tagName === 'A' ||
-                      target.closest('a') !== null ||
-                      target.closest('button') !== null ||
-                      target.classList.contains('cursor-pointer');
-      
-      // Use VIBGYOR colors if not clicking on a button/link
-      const useVibgyor = !isButton;
-      
-      const rect = section.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      // Create 1-2 tech ripples with VIBGYOR or tech colors
-      const rippleCount = 1 + Math.floor(Math.random() * 2);
-      for (let i = 0; i < rippleCount; i++) {
-        const offset = (Math.random() - 0.5) * 25;
-        ripplesRef.current.push(new TechRipple(x + offset, y + offset, useVibgyor));
-      }
-    };
+      // Create tech ripple on click - use current theme colors
+      const handleClick = (e) => {
+        // Check if clicked element is a button or link
+        const target = e.target;
+        const isButton = target.tagName === 'BUTTON' || 
+                        target.tagName === 'A' ||
+                        target.closest('a') !== null ||
+                        target.closest('button') !== null ||
+                        target.classList.contains('cursor-pointer');
+        
+        // Use VIBGYOR colors if not clicking on a button/link
+        const useVibgyor = !isButton;
+        
+        const rect = section.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Create 1-2 tech ripples with VIBGYOR or tech colors
+        const rippleCount = 1 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < rippleCount; i++) {
+          const offset = (Math.random() - 0.5) * 25;
+          // Update ripple constructor to use current theme colors
+          const ripple = new TechRipple(x + offset, y + offset, useVibgyor);
+          // Override colors if needed
+          if (!useVibgyor) {
+            ripple.color = Math.random() > 0.5 ? currentColors.primaryColor : currentColors.secondaryColor;
+          }
+          ripplesRef.current.push(ripple);
+        }
+      };
 
       // Animation loop
       const animate = () => {
@@ -616,12 +647,24 @@ const WaterDropletEffect = ({ sectionRef }) => {
       setTimeout(init, 200);
     }
 
+    // Watch for theme changes - update colors dynamically
+    const observer = new MutationObserver(() => {
+      // When theme changes, clear existing ripples to regenerate with new colors
+      ripplesRef.current = [];
+    });
+    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme']
+    });
+
     // Cleanup on unmount
     return () => {
       isReadyRef.current = false;
+      observer.disconnect();
       if (cleanupFn) cleanupFn();
     };
-  }, [sectionRef]);
+  }, [sectionRef, getEffectiveTheme]);
 
   return (
     <canvas
@@ -635,10 +678,28 @@ const WaterDropletEffect = ({ sectionRef }) => {
 // Plexus Network Animation Component - Canvas-based, performant
 const ParticleAnimation = () => {
   const canvasRef = useRef(null);
+  const { getEffectiveTheme } = useTheme();
 
-  // Tech-themed colors
-  const primaryColor = { r: 254, g: 119, b: 67 }; // #FE7743 Orange
-  const secondaryColor = { r: 0, g: 217, b: 255 }; // #00D9FF Cyan
+  // Tech-themed colors - theme-aware
+  const getThemeColors = () => {
+    const theme = getEffectiveTheme();
+    if (theme === 'dark') {
+      return {
+        primaryColor: { r: 254, g: 119, b: 67 }, // #FE7743 Orange
+        secondaryColor: { r: 0, g: 217, b: 255 }, // #00D9FF Cyan
+      };
+    } else {
+      // Light theme - slightly darker/more vibrant for visibility
+      return {
+        primaryColor: { r: 238, g: 100, b: 50 }, // Slightly darker orange
+        secondaryColor: { r: 0, g: 180, b: 220 }, // Slightly darker cyan
+      };
+    }
+  };
+  
+  const themeColors = getThemeColors();
+  const primaryColor = themeColors.primaryColor;
+  const secondaryColor = themeColors.secondaryColor;
   
   // Plexus network configuration - optimized for initial load
   const config = useMemo(() => ({
@@ -680,11 +741,16 @@ const ParticleAnimation = () => {
     };
     window.addEventListener('resize', handleResize, { passive: true });
 
-    // Particle class
+    // Particle class - uses current theme colors
     class Particle {
       constructor() {
         this.reset();
-        this.color = Math.random() > 0.5 ? primaryColor : secondaryColor;
+        // Get fresh theme colors for each particle
+        const theme = getEffectiveTheme();
+        const colors = theme === 'dark' 
+          ? { primaryColor: { r: 254, g: 119, b: 67 }, secondaryColor: { r: 0, g: 217, b: 255 } }
+          : { primaryColor: { r: 238, g: 100, b: 50 }, secondaryColor: { r: 0, g: 180, b: 220 } };
+        this.color = Math.random() > 0.5 ? colors.primaryColor : colors.secondaryColor;
       }
 
       reset() {
@@ -891,6 +957,19 @@ const ParticleAnimation = () => {
       setTimeout(startAnimation, 300);
     }
 
+    // Watch for theme changes - regenerate particles with new colors
+    const observer = new MutationObserver(() => {
+      // Regenerate particles when theme changes
+      if (particles.length > 0) {
+        particles = Array.from({ length: config.particleCount }, () => new Particle());
+      }
+    });
+    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme']
+    });
+
     // Draw connection line between particles with enhanced glow
     const drawConnection = (p1, p2, dist) => {
       const opacity = 1 - (dist / config.connectionDistance);
@@ -957,16 +1036,17 @@ const ParticleAnimation = () => {
       }
     }
 
-    // Cleanup
+      // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
       clearTimeout(resizeTimeout);
+      observer.disconnect();
       isLoadedRef.current = false;
       if (animationId) {
         cancelAnimationFrame(animationId);
       }
     };
-  }, [config, primaryColor, secondaryColor]);
+  }, [config, getEffectiveTheme]);
 
   return (
     <canvas
@@ -979,11 +1059,13 @@ const ParticleAnimation = () => {
 
 export default function Hero() {
   const sectionRef = useRef(null);
+  const { getEffectiveTheme } = useTheme();
+  const effectiveTheme = getEffectiveTheme();
 
   return (
     <section 
       ref={sectionRef}
-      className="h-screen flex items-center justify-center bg-black relative overflow-hidden"
+      className="h-screen flex items-center justify-center bg-gray-50 dark:bg-black relative overflow-hidden transition-colors duration-300"
     >
       {/* Background image container */}
       <div
@@ -1016,33 +1098,45 @@ export default function Hero() {
               opacity: 1,
             }}
           />
-          {/* Gradient borders to dissolve edges */}
+          {/* Gradient borders to dissolve edges - theme-aware */}
           <div 
-            className="absolute inset-0" 
+            className="absolute inset-0 transition-opacity duration-300" 
             style={{
-              background: 'radial-gradient(ellipse 80% 100% at center right, transparent 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.7) 70%, rgba(0,0,0,1) 100%)'
+              background: effectiveTheme === 'dark'
+                ? 'radial-gradient(ellipse 80% 100% at center right, transparent 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.7) 70%, rgba(0,0,0,1) 100%)'
+                : 'radial-gradient(ellipse 80% 100% at center right, transparent 0%, rgba(255,255,255,0.2) 40%, rgba(255,255,255,0.7) 70%, rgba(255,255,255,1) 100%)'
             }}
           />
           <div 
-            className="absolute inset-0" 
+            className="absolute inset-0 transition-opacity duration-300" 
             style={{
-              background: 'linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 30%, rgba(0,0,0,0.8) 60%, rgba(0,0,0,1) 100%)'
+              background: effectiveTheme === 'dark'
+                ? 'linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 30%, rgba(0,0,0,0.8) 60%, rgba(0,0,0,1) 100%)'
+                : 'linear-gradient(to left, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 30%, rgba(255,255,255,0.8) 60%, rgba(255,255,255,1) 100%)'
             }}
           />
           <div 
-            className="absolute inset-0" 
+            className="absolute inset-0 transition-opacity duration-300" 
             style={{
-              background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.6) 100%)'
+              background: effectiveTheme === 'dark'
+                ? 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.6) 100%)'
+                : 'linear-gradient(to bottom, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 30%, rgba(255,255,255,0) 70%, rgba(255,255,255,0.6) 100%)'
             }}
           />
         </motion.div>
-        {/* Gradient overlay - lighter for better image visibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/50" />
-        {/* Additional subtle radial gradient for depth */}
+        {/* Gradient overlay - theme-aware */}
+        <div className={`absolute inset-0 transition-colors duration-300 ${
+          effectiveTheme === 'dark' 
+            ? 'bg-gradient-to-r from-black via-black/70 to-black/50' 
+            : 'bg-gradient-to-r from-white via-white/70 to-white/50'
+        }`} />
+        {/* Additional subtle radial gradient for depth - theme-aware */}
         <div 
-          className="absolute inset-0" 
+          className="absolute inset-0 transition-opacity duration-300" 
           style={{
-            background: 'radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.9) 100%)'
+            background: effectiveTheme === 'dark'
+              ? 'radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.9) 100%)'
+              : 'radial-gradient(ellipse at center, transparent 0%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.6) 70%, rgba(255,255,255,0.9) 100%)'
           }}
         />
       </div>
@@ -1163,7 +1257,7 @@ export default function Hero() {
           transition={{ delay: 0.2, duration: 0.5 }} // Faster for better UX
         >
           <motion.p
-            className="text-sm md:text-base text-muted/80 mb-4 md:mb-6"
+            className="text-sm md:text-base text-gray-600 dark:text-gray-300 mb-4 md:mb-6 transition-colors duration-300"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.4 }} // Reduced delay and duration
@@ -1266,7 +1360,7 @@ export default function Hero() {
             />
           </motion.a>
           <motion.a
-            href="/abhishek_resume.pdf"
+            href="/abhishek-resume.pdf"
             download
             className="group relative border-2 border-primary text-primary px-6 md:px-8 py-2.5 md:py-3 rounded-full overflow-hidden transition-all duration-300 flex items-center gap-2 text-sm md:text-base cursor-pointer"
             whileHover={{ 

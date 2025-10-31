@@ -7,12 +7,12 @@ import os
 
 app = Flask(__name__)
 
-# Configure CORS for Vercel deployment
+# Configure CORS for Vercel deployment - allow all origins and methods
 CORS(app, resources={
-    r"/api/*": {
+    r"/*": {
         "origins": ["*"],  # Allow all origins in production
         "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
+        "allow_headers": ["Content-Type", "Accept"]
     }
 })
 
@@ -41,14 +41,25 @@ def get_db():
         print(f"MongoDB connection error: {str(e)}")
         return None
 
-@app.route('/', methods=['POST', 'OPTIONS'])
+# Handle both /api/submit-form and / paths for Vercel compatibility
+@app.route('/api/submit-form', methods=['POST', 'OPTIONS', 'GET'])
+@app.route('/', methods=['POST', 'OPTIONS', 'GET'])
 def submit_form():
     # Handle preflight requests
     if request.method == 'OPTIONS':
         response = jsonify({})
         response.headers.add('Access-Control-Allow-Origin', '*')
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS, GET')
+        return response, 200
+    
+    # Handle GET requests for health checks
+    if request.method == 'GET':
+        response = jsonify({
+            'status': 'ok',
+            'message': 'API endpoint is working'
+        })
+        response.headers.add('Access-Control-Allow-Origin', '*')
         return response, 200
         
     try:

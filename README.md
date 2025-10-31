@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Abhishek Singh - Portfolio 2025
 
-## Getting Started
+A modern, animated portfolio website built with Next.js 14, featuring a dynamic Hero section, interactive project showcases, and a fully functional contact form with email notifications.
 
-First, run the development server:
+## 🚀 Quick Start
+
+### Development
 
 ```bash
-npm run dev
-# or
+# Install dependencies
+yarn install
+
+# Run development server
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Build for production
+yarn build
+
+# Start production server
+yarn start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Deployment to Vercel
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+# Automated deployment (recommended)
+yarn deploy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Inter](https://vercel.com/font), a new font family for Vercel.
+# Quick deployment
+yarn deploy:quick
 
-## Learn More
+# Local testing with Vercel
+yarn deploy:local
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 📚 Documentation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **[Quick Start Guide](./QUICK_START.md)** - Get deployed in 15 minutes
+- **[Complete Deployment Guide](./VERCEL_DEPLOYMENT_GUIDE.md)** - Full setup instructions
+- **[Email Setup Guide](./backend/EMAIL_SETUP.md)** - Configure email notifications
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛠️ Tech Stack
 
-## Deploy on Vercel
+- **Frontend**: Next.js 14, React, Tailwind CSS, Framer Motion
+- **Backend**: Flask (Python) serverless functions on Vercel
+- **Database**: MongoDB Atlas
+- **Email**: Flask-Mail with Gmail SMTP
+- **Deployment**: Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## ✨ Features
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- ⚡ Modern, animated UI with dual-tone headings
+- 🎨 Snake ladder timeline for Experience and Projects
+- 📧 Contact form with email notifications
+- 🗄️ MongoDB integration for message storage
+- 📱 Fully responsive design
+- 🚀 Automatic deployments via Git integration
+- ⚙️ Serverless backend functions
+
+## 📦 Project Structure
+
+```
+├── api/                    # Vercel serverless functions
+│   ├── submit-form.py     # Contact form API
+│   └── requirements.txt   # Python dependencies
+├── src/
+│   ├── app/               # Next.js app router
+│   ├── components/        # React components
+│   └── data/              # Config files
+├── scripts/               # Deployment scripts
+├── vercel.json            # Vercel configuration
+└── package.json           # Node.js dependencies
+```
+
+## 🔧 Environment Variables
+
+See [VERCEL_DEPLOYMENT_GUIDE.md](./VERCEL_DEPLOYMENT_GUIDE.md) for complete setup.
+
+**Required for Vercel:**
+- `MONGODB_URI` - MongoDB Atlas connection string
+- `MAIL_USERNAME` - Gmail address
+- `MAIL_PASSWORD` - Gmail App Password
+- `RECIPIENT_EMAIL` - Where to send notifications
+
+## 📖 Learn More
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Vercel Documentation](https://vercel.com/docs)
+- [Framer Motion](https://www.framer.com/motion/)
+
+## 📄 License
+
+© 2025 Abhishek Singh. All rights reserved.
