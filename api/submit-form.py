@@ -41,8 +41,10 @@ def get_db():
         print(f"MongoDB connection error: {str(e)}")
         return None
 
-# Handle both /api/submit-form and / paths for Vercel compatibility
+# Handle routes for Vercel compatibility
+# Vercel routes /api/submit-form to this file, so Flask should handle the path
 @app.route('/api/submit-form', methods=['POST', 'OPTIONS', 'GET'])
+@app.route('/submit-form', methods=['POST', 'OPTIONS', 'GET'])
 @app.route('/', methods=['POST', 'OPTIONS', 'GET'])
 def submit_form():
     # Handle preflight requests
@@ -63,11 +65,38 @@ def submit_form():
         return response, 200
         
     try:
+        # Validate request has JSON data
+        if not request.is_json:
+            response = jsonify({
+                'success': False,
+                'message': 'Content-Type must be application/json'
+            })
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            return response, 400
+        
         data = request.json
-        name = data.get('name')
-        email = data.get('email')
-        subject = data.get('subject')
-        message = data.get('message')
+        if not data:
+            response = jsonify({
+                'success': False,
+                'message': 'Request body is required'
+            })
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            return response, 400
+        
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        subject = data.get('subject', '').strip()
+        message = data.get('message', '').strip()
+        
+        # Validate required fields
+        if not name or not email or not message:
+            response = jsonify({
+                'success': False,
+                'message': 'Name, email, and message are required fields'
+            })
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            return response, 400
+        
         timestamp = datetime.now()
 
         # Create document
@@ -120,16 +149,22 @@ This message was sent on {timestamp.strftime('%Y-%m-%d %H:%M:%S')}
             'id': str(result.inserted_id) if result else None
         })
         response.headers.add('Access-Control-Allow-Origin', '*')
-        return response
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS, GET')
+        return response, 200
 
     except Exception as e:
+        error_message = str(e)
+        print(f"Error processing form submission: {error_message}")
         response = jsonify({
             'success': False,
-            'message': str(e)
+            'message': error_message if error_message else 'An error occurred processing your request'
         })
         response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS, GET')
         return response, 500
 
-# Export handler for Vercel
+# Export handler for Vercel - Flask app works as WSGI handler
 handler = app
 
