@@ -1,11 +1,51 @@
 'use client';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import themeConfig from '@/config/theme';
 
 const ThemeToggle = () => {
   const { theme, toggleTheme, getEffectiveTheme, mounted } = useTheme();
-  const effectiveTheme = getEffectiveTheme();
+  const [effectiveTheme, setEffectiveTheme] = useState(() => {
+    // Get initial theme from DOM to avoid mismatch
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    }
+    return 'light';
+  });
+
+  // Update effective theme reactively
+  useEffect(() => {
+    if (!mounted) return;
+
+    const updateTheme = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setEffectiveTheme(isDark ? 'dark' : 'light');
+    };
+
+    // Update immediately
+    updateTheme();
+
+    // Watch for theme changes
+    const observer = new MutationObserver(() => {
+      updateTheme();
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme']
+    });
+
+    const handleThemeChange = () => {
+      setTimeout(updateTheme, 0);
+    };
+    window.addEventListener('themechange', handleThemeChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('themechange', handleThemeChange);
+    };
+  }, [theme, mounted]);
 
   // Don't render until mounted to avoid hydration mismatch
   if (!mounted) {

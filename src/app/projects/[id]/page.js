@@ -1,7 +1,6 @@
 'use client';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { use } from 'react';
 import { getProjectById } from '@/data/projects';
 
 // Text gradient animation for smooth color flow
@@ -15,8 +14,9 @@ const gradientAnimation = {
 };
 
 export default function ProjectDetailPage({ params }) {
-  const { id } = use(params);
-  const project = getProjectById(id);
+  // In Next.js 14, params is synchronous for client components
+  const { id } = params || {};
+  const project = id ? getProjectById(id) : null;
 
   if (!project) {
     return (

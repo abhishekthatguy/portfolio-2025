@@ -1,153 +1,23 @@
 'use client';
 import { motion } from 'framer-motion';
-import { useMemo, useRef, useEffect, useState } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useTheme } from '@/hooks/useTheme';
-
-// ============================================================================
-// ANIMATION VARIANTS - Optimized for LCP and Performance
-// ============================================================================
-
-const container = {
-  hidden: {},
-  show: {
-    transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0
-    }
-  }
-};
-
-const item = {
-  hidden: { opacity: 1, y: 0 },
-  show: { opacity: 1, y: 0, transition: { duration: 0, ease: [0.16, 1, 0.3, 1] } }
-};
-
-const floatingAnimation = {
-  y: [0, -15, 0],
-  transition: {
-    duration: 3,
-    repeat: Infinity,
-    ease: "easeInOut"
-  }
-};
-
-const titleContainerAnimation = {
-  animate: {
-    scale: [1, 1.02, 1],
-    transition: {
-      duration: 4,
-      repeat: Infinity,
-      ease: "easeInOut"
-    }
-  }
-};
-
-const letterContainer = {
-  hidden: { opacity: 1 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.03,
-      delayChildren: 0
-    }
-  }
-};
-
-const letterAnimation = {
-  hidden: { opacity: 1, y: 0, scale: 1 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0, ease: [0.16, 1, 0.3, 1] }
-  }
-};
-
-const letterLoopAnimation = {
-  opacity: [0.95, 1, 0.95],
-  y: [0, -5, 0],
-  scale: [1, 1.04, 1],
-  filter: [
-    "brightness(1) drop-shadow(0 0 10px rgba(254, 119, 67, 0.4))",
-    "brightness(1.1) drop-shadow(0 0 15px rgba(254, 119, 67, 0.6))",
-    "brightness(1) drop-shadow(0 0 10px rgba(254, 119, 67, 0.4))"
-  ],
-  transition: {
-    duration: 3,
-    repeat: Infinity,
-    ease: "easeInOut",
-    delay: 0
-  }
-};
-
-const singhAnimation = {
-  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-  scale: [1, 1.05, 1],
-  filter: [
-    "brightness(1.15) drop-shadow(0 0 10px rgba(0, 217, 255, 0.5))",
-    "brightness(1.25) drop-shadow(0 0 20px rgba(135, 206, 235, 0.7))",
-    "brightness(1.15) drop-shadow(0 0 10px rgba(0, 217, 255, 0.5))"
-  ],
-  transition: {
-    duration: 3,
-    repeat: Infinity,
-    ease: "easeInOut",
-    delay: 0.3
-  }
-};
-
-const subtitleLoopAnimation = {
-  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-  scale: [1, 1.02, 1],
-  opacity: [0.92, 1, 0.92],
-  filter: [
-    "brightness(1) drop-shadow(0 0 8px rgba(255, 255, 255, 0.4))",
-    "brightness(1.15) drop-shadow(0 0 15px rgba(0, 217, 255, 0.6)) drop-shadow(0 0 10px rgba(254, 119, 67, 0.4))",
-    "brightness(1) drop-shadow(0 0 8px rgba(255, 255, 255, 0.4))"
-  ],
-  transition: {
-    backgroundPosition: { duration: 5, repeat: Infinity, ease: "linear" },
-    scale: { duration: 3.5, repeat: Infinity, ease: "easeInOut" },
-    opacity: { duration: 3.5, repeat: Infinity, ease: "easeInOut" },
-    filter: { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
-  }
-};
-
-const techStackContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.1
-    }
-  }
-};
-
-const techStackItem = {
-  hidden: { opacity: 0, y: 10, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.5, ease: "easeOut" }
-  }
-};
-
-// ============================================================================
-// DATA & CONFIGURATION
-// ============================================================================
-
-const techStacks = [
-  { name: 'Vue', color: '#4FC3F7', bgColor: 'rgba(79, 195, 247, 0.25)', glowColor: 'rgba(79, 195, 247, 0.5)', textShadow: '0 0 8px rgba(79, 195, 247, 0.6)' },
-  { name: 'React', color: '#61DAFB', bgColor: 'rgba(97, 218, 251, 0.25)', glowColor: 'rgba(97, 218, 251, 0.5)', textShadow: '0 0 8px rgba(97, 218, 251, 0.6)' },
-  { name: 'Next.js', color: '#ffffff', bgColor: 'rgba(255, 255, 255, 0.25)', glowColor: 'rgba(255, 255, 255, 0.6)', subtitle: 'SSR', textShadow: '0 0 10px rgba(255, 255, 255, 0.8)' },
-  { name: 'MERN', color: '#00D9FF', bgColor: 'rgba(0, 217, 255, 0.25)', glowColor: 'rgba(0, 217, 255, 0.5)', textShadow: '0 0 8px rgba(0, 217, 255, 0.6)' },
-  { name: 'DevOps', color: '#FF6B6B', bgColor: 'rgba(255, 107, 107, 0.25)', glowColor: 'rgba(255, 107, 107, 0.5)', textShadow: '0 0 8px rgba(255, 107, 107, 0.6)' },
-  { name: 'ERP', color: '#FE7743', bgColor: 'rgba(254, 119, 67, 0.25)', glowColor: 'rgba(254, 119, 67, 0.5)', textShadow: '0 0 8px rgba(254, 119, 67, 0.6)' },
-  { name: 'CMS', color: '#4ECDC4', bgColor: 'rgba(78, 205, 196, 0.25)', glowColor: 'rgba(78, 205, 196, 0.5)', textShadow: '0 0 8px rgba(78, 205, 196, 0.6)' },
-];
+import { useThemeStyles } from '@/hooks/useThemeStyles';
+import {
+  container,
+  item,
+  floatingAnimation,
+  titleContainerAnimation,
+  letterContainer,
+  letterAnimation,
+  letterLoopAnimation,
+  singhAnimation,
+  subtitleLoopAnimation,
+  techStackContainer,
+  techStackItem
+} from '@/styles/animations';
+import { techStacks } from '@/constants/techStack';
 
 // ============================================================================
 // CANVAS COMPONENTS - Water Droplet & Particle Effects
@@ -740,98 +610,13 @@ const ParticleAnimation = () => {
 
 export default function Hero() {
   const sectionRef = useRef(null);
-  const { getEffectiveTheme, theme } = useTheme();
-  const [effectiveTheme, setEffectiveTheme] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-    }
-    return 'light';
-  });
-
-  // Aggressive theme tracking for instant UI updates
-  useEffect(() => {
-    const updateTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setEffectiveTheme(isDark ? 'dark' : 'light');
-    };
-
-    updateTheme();
-
-    let timeoutId;
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && 
-            (mutation.attributeName === 'class' || mutation.attributeName === 'data-theme')) {
-          clearTimeout(timeoutId);
-          timeoutId = setTimeout(() => {
-            updateTheme();
-          }, 0); // Immediate update for aggressive theme switching
-        }
-      });
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class', 'data-theme']
-    });
-
-    const handleStorageChange = (e) => {
-      if (e.key === 'theme-preference') {
-        setTimeout(updateTheme, 50);
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-
-    const handleThemeChange = () => {
-      setTimeout(updateTheme, 0);
-    };
-    window.addEventListener('themechange', handleThemeChange);
-
-    return () => {
-      clearTimeout(timeoutId);
-      observer.disconnect();
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('themechange', handleThemeChange);
-    };
-  }, [theme]);
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setEffectiveTheme(isDark ? 'dark' : 'light');
-    }, 0);
-    
-    return () => clearTimeout(timeoutId);
-  }, [theme]);
-
-  // Theme-aware gradient styles - More aggressive contrast
-  const getGradientOverlays = () => {
-    const isDark = effectiveTheme === 'dark';
-    return {
-      radialGradient: isDark
-        ? 'radial-gradient(ellipse 80% 100% at center right, transparent 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.85) 70%, rgba(0,0,0,1) 100%)'
-        : 'radial-gradient(ellipse 80% 100% at center right, transparent 0%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.85) 70%, rgba(255,255,255,1) 100%)',
-      leftGradient: isDark
-        ? 'linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0.4) 30%, rgba(0,0,0,0.9) 60%, rgba(0,0,0,1) 100%)'
-        : 'linear-gradient(to left, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 30%, rgba(255,255,255,0.9) 60%, rgba(255,255,255,1) 100%)',
-      bottomGradient: isDark
-        ? 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.7) 100%)'
-        : 'linear-gradient(to bottom, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 30%, rgba(255,255,255,0) 70%, rgba(255,255,255,0.7) 100%)',
-      centerRadial: isDark
-        ? 'radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.75) 70%, rgba(0,0,0,0.95) 100%)'
-        : 'radial-gradient(ellipse at center, transparent 0%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.75) 70%, rgba(255,255,255,0.95) 100%)',
-      overlayGradient: isDark
-        ? 'bg-gradient-to-r from-black via-black/80 to-black/60'
-        : 'bg-gradient-to-r from-white via-white/80 to-white/60'
-    };
-  };
-
-  const gradients = getGradientOverlays();
+  const { getEffectiveTheme } = useTheme();
+  const { themeStyles, effectiveTheme } = useThemeStyles();
 
   return (
     <section 
       ref={sectionRef}
-      className="h-screen min-h-[600px] sm:min-h-[700px] md:min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black relative overflow-hidden transition-all duration-500 ease-in-out"
+      className={`h-screen min-h-[600px] sm:min-h-[700px] md:min-h-screen flex items-center justify-center ${themeStyles.sectionBg} relative overflow-hidden transition-all duration-500 ease-in-out`}
     >
       {/* Background Layers */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-0" aria-hidden="true">
@@ -853,28 +638,28 @@ export default function Hero() {
             style={{ opacity: 1, objectPosition: 'right top' }}
           />
           
-          {/* Theme-aware gradient overlays - Aggressive transitions */}
+          {/* Theme-aware gradient overlays - Enhanced transitions */}
           <div 
             className="absolute inset-0 transition-all duration-500 ease-in-out" 
-            style={{ background: gradients.radialGradient }}
+            style={{ background: themeStyles.radialGradient }}
           />
           <div 
             className="absolute inset-0 transition-all duration-500 ease-in-out" 
-            style={{ background: gradients.leftGradient }}
+            style={{ background: themeStyles.leftGradient }}
           />
           <div 
             className="absolute inset-0 transition-all duration-500 ease-in-out" 
-            style={{ background: gradients.bottomGradient }}
+            style={{ background: themeStyles.bottomGradient }}
           />
         </motion.div>
         
-        {/* Gradient Overlay - More prominent */}
-        <div className={`absolute inset-0 transition-all duration-500 ease-in-out ${gradients.overlayGradient}`} />
+        {/* Gradient Overlay - Theme adapted */}
+        <div className={`absolute inset-0 transition-all duration-500 ease-in-out ${themeStyles.overlayGradient}`} />
         
         {/* Center Radial Gradient */}
         <div 
           className="absolute inset-0 transition-all duration-500 ease-in-out" 
-          style={{ background: gradients.centerRadial }}
+          style={{ background: themeStyles.centerRadial }}
         />
       </div>
       
@@ -911,12 +696,13 @@ export default function Hero() {
                     className="inline-block"
                     variants={letterAnimation}
                     style={{
-                      backgroundImage: "linear-gradient(90deg, #FE7743, #FFA366, #FE7743, #FF8C4D, #FE7743)",
+                      backgroundImage: themeStyles.abhishekGradient,
                       backgroundSize: "200% auto",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                       backgroundClip: "text",
-                      display: "inline-block"
+                      display: "inline-block",
+                      transition: 'background-image 0.5s ease-in-out'
                     }}
                     animate={{
                       ...letterLoopAnimation,
@@ -937,7 +723,7 @@ export default function Hero() {
               <motion.span
                 className="inline-block"
                 style={{
-                  backgroundImage: "linear-gradient(90deg, #87CEEB, #00D9FF, #B0E0E6, #4DD0E1, #00D9FF, #ADD8E6, #87CEEB)",
+                  backgroundImage: themeStyles.singhGradient,
                   backgroundSize: "300% auto",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
@@ -947,7 +733,8 @@ export default function Hero() {
                   paddingBottom: "0.1em",
                   paddingTop: "0.02em",
                   verticalAlign: "baseline",
-                  overflow: "visible"
+                  overflow: "visible",
+                  transition: 'background-image 0.5s ease-in-out'
                 }}
                 animate={singhAnimation}
               >
@@ -960,11 +747,12 @@ export default function Hero() {
           <motion.h2
             className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl mb-3 sm:mb-4 md:mb-6 relative inline-block px-2 sm:px-4"
             style={{
-              backgroundImage: "linear-gradient(90deg, #FF6B35, #FE7743, #00B8E6, #00D9FF, #FE7743, #0099CC, #00D9FF, #FF8C61)",
+              backgroundImage: themeStyles.subtitleGradient,
               backgroundSize: "300% auto",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
+              transition: 'background-image 0.5s ease-in-out'
             }}
             initial={false}
             animate={subtitleLoopAnimation}
@@ -981,7 +769,7 @@ export default function Hero() {
           transition={{ delay: 0.2, duration: 0.5 }}
         >
           <motion.p
-            className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-300 mb-3 sm:mb-4 md:mb-6 transition-colors duration-500"
+            className={`text-xs sm:text-sm md:text-base ${themeStyles.descriptionText} mb-3 sm:mb-4 md:mb-6 transition-colors duration-500`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.4 }}
@@ -1003,25 +791,40 @@ export default function Hero() {
                 whileHover={{ scale: 1.08, y: -3, transition: { duration: 0.2, ease: "easeOut" } }}
               >
                 <div
-                  className="relative px-2.5 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-full backdrop-blur-sm border border-white/20 dark:border-white/20 transition-all duration-300 group-hover:border-white/40 group-hover:shadow-lg"
+                  className={`relative px-2.5 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-full backdrop-blur-md border-2 ${themeStyles.techBadgeBorder} transition-all duration-500 ${effectiveTheme === 'dark' ? 'group-hover:border-white/70' : 'group-hover:border-gray-700/90'}`}
                   style={{
-                    background: `linear-gradient(135deg, ${tech.bgColor}, ${tech.bgColor.replace('0.25', '0.35')})`,
-                    boxShadow: `0 2px 8px rgba(0, 0, 0, 0.3), 0 0 12px ${tech.glowColor}40`,
-                    transition: 'all 0.3s ease'
+                    background: themeStyles.techBadgeBg(tech.bgColor),
+                    boxShadow: themeStyles.techBadgeShadow(tech.glowColor),
+                    transition: 'all 0.5s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = themeStyles.techBadgeHoverShadow(tech.glowColor);
+                    e.currentTarget.style.borderColor = effectiveTheme === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.7)' 
+                      : 'rgba(55, 65, 81, 0.9)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = themeStyles.techBadgeShadow(tech.glowColor);
+                    e.currentTarget.style.borderColor = '';
                   }}
                 >
                   <span
-                    className="text-[10px] sm:text-xs md:text-sm font-semibold flex items-center gap-1 sm:gap-1.5 relative z-10"
+                    className="text-[10px] sm:text-xs md:text-sm font-bold flex items-center gap-1 sm:gap-1.5 relative z-10"
                     style={{ 
                       color: tech.color,
-                      textShadow: tech.textShadow || '0 0 8px rgba(0, 0, 0, 0.5)'
+                      textShadow: themeStyles.techTextShadow(tech.textShadow || '0 0 8px rgba(0, 0, 0, 0.5)', tech.color),
+                      transition: 'text-shadow 0.5s ease',
+                      fontWeight: '700'
                     }}
                   >
                     <span>{tech.name}</span>
                     {tech.subtitle && (
                       <span 
-                        className="text-[8px] sm:text-[10px] md:text-xs opacity-80 font-normal"
-                        style={{ textShadow: tech.textShadow || '0 0 6px rgba(0, 0, 0, 0.5)' }}
+                        className="text-[8px] sm:text-[10px] md:text-xs opacity-90 font-semibold"
+                        style={{ 
+                          textShadow: themeStyles.techTextShadow(tech.textShadow || '0 0 6px rgba(0, 0, 0, 0.5)', tech.color),
+                          transition: 'text-shadow 0.5s ease'
+                        }}
                       >
                         ({tech.subtitle})
                       </span>
@@ -1043,30 +846,33 @@ export default function Hero() {
           {[
             { href: "#contact", label: "Contact Me" },
             { href: "#projects", label: "View Projects" },
-            { href: "/abhishek-resume.pdf", label: "Download Resume", download: true }
+            { href: "/Abhishek-resume.pdf", label: "Download Resume", download: true }
           ].map((button) => (
             <motion.a
               key={button.label}
               href={button.href}
               download={button.download}
-              className="group relative border-2 border-primary text-primary px-4 sm:px-5 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 rounded-full overflow-hidden transition-all duration-300 text-xs sm:text-sm md:text-base cursor-pointer flex items-center gap-2"
+              className={`group relative border-2 ${themeStyles.buttonBorder} ${themeStyles.buttonText} px-4 sm:px-5 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 rounded-full overflow-hidden transition-all duration-500 text-xs sm:text-sm md:text-base cursor-pointer flex items-center gap-2`}
               whileHover={{ 
                 scale: 1.05,
-                boxShadow: "0 0 30px rgba(254, 119, 67, 0.6), 0 0 60px rgba(254, 119, 67, 0.3), inset 0 0 20px rgba(254, 119, 67, 0.2)"
+                boxShadow: themeStyles.buttonHoverShadow
               }}
               whileTap={{ scale: 0.98 }}
-              style={{ boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)" }}
+              style={{ 
+                boxShadow: themeStyles.buttonShadow,
+                transition: 'box-shadow 0.5s ease, border-color 0.5s ease, color 0.5s ease'
+              }}
             >
               {button.label === "Download Resume" && (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 relative z-10 transition-transform duration-300 group-hover:scale-110" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 relative z-10 transition-transform duration-300 group-hover:scale-110 ${themeStyles.buttonText}`} viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
               )}
-              <span className="relative z-10 transition-colors duration-300 group-hover:text-secondary">
+              <span className={`relative z-10 transition-colors duration-500 group-hover:text-white`}>
                 {button.label}
               </span>
               <motion.div
-                className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                className={`absolute inset-0 ${themeStyles.buttonHoverBg} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
                 initial={false}
               />
             </motion.a>

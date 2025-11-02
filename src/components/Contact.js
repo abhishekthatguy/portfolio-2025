@@ -2,18 +2,11 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-
-// Text gradient animation for smooth color flow
-const gradientAnimation = {
-  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-  transition: {
-    duration: 5,
-    repeat: Infinity,
-    ease: "linear",
-  },
-};
+import { useThemeStyles } from '@/hooks/useThemeStyles';
+import { gradientAnimation, fadeInDown, fadeInUp } from '@/styles/animations';
 
 const Contact = () => {
+  const { themeStyles, effectiveTheme } = useThemeStyles();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -63,61 +56,71 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="py-20 bg-black relative overflow-hidden">
-      {/* Background gradient effect */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-orange-900/5 to-black pointer-events-none"></div>
+    <section id="contact" className={`py-20 ${themeStyles.sectionBg} relative overflow-hidden transition-all duration-500 ease-in-out`}>
+      {/* Background gradient effect - Theme-aware */}
+      <div className={`absolute inset-0 pointer-events-none transition-all duration-500 ${
+        effectiveTheme === 'dark' 
+          ? 'bg-gradient-to-b from-black via-orange-900/5 to-black' 
+          : 'bg-gradient-to-b from-gray-50 via-orange-50/20 to-gray-50'
+      }`}></div>
       
       <div className="max-w-4xl mx-auto px-4 relative z-10">
         <motion.h2
-          className="text-4xl md:text-5xl font-extrabold text-center mb-6"
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
+          className={`text-4xl md:text-5xl font-extrabold text-center mb-6 ${themeStyles.headingText} transition-colors duration-500`}
+          variants={fadeInDown}
+          initial="hidden"
+          whileInView="visible"
+          exit="hidden"
           viewport={{ once: false, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
         >
           <motion.span
             className="inline-block"
             style={{
-              backgroundImage: "linear-gradient(90deg, #FE7743, #ffffff, #FE7743)",
+              backgroundImage: themeStyles.subtitleGradient,
               backgroundSize: "200% auto",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
               display: "inline-block",
+              transition: 'background-image 0.5s ease-in-out'
             }}
             animate={gradientAnimation}
           >
             Get in
           </motion.span>{' '}
-          <span className="text-primary">Touch</span>
+          <span className={effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'}>Touch</span>
         </motion.h2>
 
         <motion.div
           className="text-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          exit="hidden"
           viewport={{ once: false, amount: 0.3 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ delay: 0.2 }}
         >
-          <p className="text-lg text-muted max-w-3xl mx-auto mb-4">
-            Ready to collaborate on your next project? Whether you prefer to <span className="text-primary font-semibold">call directly</span> or <span className="text-primary font-semibold">reach out via the form below</span>, I'm here to discuss how we can bring your vision to life. <span className="text-primary font-semibold">I'll respond ASAP!</span>
+          <p className={`text-lg ${themeStyles.descriptionText} max-w-3xl mx-auto mb-4 transition-colors duration-500`}>
+            Ready to collaborate on your next project? Whether you prefer to <span className={`${effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'} font-semibold transition-colors duration-500`}>call directly</span> or <span className={`${effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'} font-semibold transition-colors duration-500`}>reach out via the form below</span>, I'm here to discuss how we can bring your vision to life. <span className={`${effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'} font-semibold transition-colors duration-500`}>I'll respond ASAP!</span>
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-6">
             <motion.a
               href="tel:+919621482434"
-              className="flex items-center gap-3 text-primary hover:text-secondary transition-colors duration-300 group"
+              className={`flex items-center gap-3 transition-colors duration-500 group ${
+                effectiveTheme === 'dark' ? 'text-[#FE7743] hover:text-white' : 'text-[#E65100] hover:text-gray-900'
+              }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <span className="text-2xl">📞</span>
               <span className="text-lg font-semibold group-hover:underline">Call Me Directly</span>
             </motion.a>
-            <span className="text-muted hidden sm:block">or</span>
+            <span className={`${themeStyles.mutedText} hidden sm:block transition-colors duration-500`}>or</span>
             <motion.a
               href="mailto:abhishekthatguy@gmail.com"
-              className="flex items-center gap-3 text-primary hover:text-secondary transition-colors duration-300 group"
+              className={`flex items-center gap-3 transition-colors duration-500 group ${
+                effectiveTheme === 'dark' ? 'text-[#FE7743] hover:text-white' : 'text-[#E65100] hover:text-gray-900'
+              }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -128,17 +131,24 @@ const Contact = () => {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 30 }}
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          exit="hidden"
           viewport={{ once: false, amount: 0.3 }}
-          transition={{ duration: 0.7, delay: 0.3 }}
-          className="bg-gray-900/40 backdrop-blur-sm rounded-2xl shadow-xl p-8 md:p-12 border border-primary/30"
+          transition={{ delay: 0.3 }}
+          className={`backdrop-blur-sm rounded-2xl shadow-xl p-8 md:p-12 border transition-all duration-500 ${
+            effectiveTheme === 'dark'
+              ? 'bg-gray-900/40 border-[#FE7743]/30'
+              : 'bg-white/80 border-gray-300'
+          }`}
         >
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-primary mb-2">
+                <label htmlFor="name" className={`block text-sm font-semibold mb-2 transition-colors duration-500 ${
+                  effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'
+                }`}>
                   Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -149,11 +159,17 @@ const Contact = () => {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Your Name"
-                  className="w-full px-4 py-3 bg-gray-900/50 border-2 border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary transition-all duration-300 focus:bg-gray-900/70"
+                  className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition-all duration-500 resize-none ${
+                    effectiveTheme === 'dark'
+                      ? 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-400 focus:border-[#FE7743] focus:bg-gray-800/70'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#E65100] focus:bg-white'
+                  }`}
                 />
               </div>
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-primary mb-2">
+                <label htmlFor="email" className={`block text-sm font-semibold mb-2 transition-colors duration-500 ${
+                  effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'
+                }`}>
                   Email <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -164,12 +180,18 @@ const Contact = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="your.email@example.com"
-                  className="w-full px-4 py-3 bg-gray-900/50 border-2 border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary transition-all duration-300 focus:bg-gray-900/70"
+                  className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition-all duration-500 resize-none ${
+                    effectiveTheme === 'dark'
+                      ? 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-400 focus:border-[#FE7743] focus:bg-gray-800/70'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#E65100] focus:bg-white'
+                  }`}
                 />
               </div>
             </div>
             <div>
-              <label htmlFor="subject" className="block text-sm font-semibold text-primary mb-2">
+              <label htmlFor="subject" className={`block text-sm font-semibold mb-2 transition-colors duration-500 ${
+                effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'
+              }`}>
                 Subject <span className="text-red-500">*</span>
               </label>
               <input
@@ -180,11 +202,17 @@ const Contact = () => {
                 value={formData.subject}
                 onChange={handleChange}
                 placeholder="What's this about?"
-                className="w-full px-4 py-3 bg-gray-900/50 border-2 border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary transition-all duration-300 focus:bg-gray-900/70"
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition-all duration-500 resize-none ${
+                  effectiveTheme === 'dark'
+                    ? 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-400 focus:border-[#FE7743] focus:bg-gray-800/70'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#E65100] focus:bg-white'
+                }`}
               />
             </div>
             <div>
-              <label htmlFor="message" className="block text-sm font-semibold text-primary mb-2">
+              <label htmlFor="message" className={`block text-sm font-semibold mb-2 transition-colors duration-500 ${
+                effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'
+              }`}>
                 Message <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -195,7 +223,11 @@ const Contact = () => {
                 value={formData.message}
                 onChange={handleChange}
                 placeholder="Tell me about your project, questions, or how we can collaborate..."
-                className="w-full px-4 py-3 bg-gray-900/50 border-2 border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary transition-all duration-300 focus:bg-gray-900/70 resize-none"
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition-all duration-500 resize-none ${
+                  effectiveTheme === 'dark'
+                    ? 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-400 focus:border-[#FE7743] focus:bg-gray-800/70'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#E65100] focus:bg-white'
+                }`}
               />
             </div>
             <motion.div
@@ -205,17 +237,27 @@ const Contact = () => {
               <button
                 type="submit"
                 disabled={status.type === 'loading'}
-                className="w-full group relative border-2 border-primary text-primary px-8 py-3 rounded-full overflow-hidden transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                className={`w-full group relative border-2 px-8 py-3 rounded-full overflow-hidden transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed font-semibold ${
+                  effectiveTheme === 'dark'
+                    ? 'border-[#FE7743] text-[#FE7743]'
+                    : 'border-[#E65100] text-[#E65100]'
+                }`}
                 style={{
-                  boxShadow: status.type !== 'loading' ? "0 4px 15px rgba(0, 0, 0, 0.2)" : "none"
+                  boxShadow: status.type !== 'loading' 
+                    ? (effectiveTheme === 'dark'
+                        ? '0 4px 15px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(254, 119, 67, 0.2)'
+                        : '0 4px 15px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(230, 81, 0, 0.3)')
+                    : 'none'
                 }}
               >
-                <span className="relative z-10 transition-colors duration-300 group-hover:text-secondary">
+                <span className="relative z-10 transition-colors duration-500 group-hover:text-white">
                   {status.type === 'loading' ? 'Sending...' : 'Send Message'}
                 </span>
                 {status.type !== 'loading' && (
                   <motion.div
-                    className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
+                      effectiveTheme === 'dark' ? 'bg-[#FE7743]' : 'bg-[#E65100]'
+                    }`}
                     initial={false}
                   />
                 )}
@@ -225,12 +267,18 @@ const Contact = () => {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`mt-4 p-4 rounded-lg text-center font-semibold ${
+                className={`mt-4 p-4 rounded-lg text-center font-semibold transition-all duration-500 ${
                   status.type === 'success'
-                    ? 'bg-green-900/30 border-2 border-green-500/50 text-green-400'
+                    ? effectiveTheme === 'dark'
+                      ? 'bg-green-900/30 border-2 border-green-500/50 text-green-400'
+                      : 'bg-green-50 border-2 border-green-500 text-green-700'
                     : status.type === 'error'
-                    ? 'bg-red-900/30 border-2 border-red-500/50 text-red-400'
-                    : 'bg-gray-900/50 border-2 border-gray-700 text-gray-400'
+                    ? effectiveTheme === 'dark'
+                      ? 'bg-red-900/30 border-2 border-red-500/50 text-red-400'
+                      : 'bg-red-50 border-2 border-red-500 text-red-700'
+                    : effectiveTheme === 'dark'
+                      ? 'bg-gray-900/50 border-2 border-gray-700 text-gray-400'
+                      : 'bg-gray-100 border-2 border-gray-300 text-gray-600'
                 }`}
               >
                 {status.type === 'success' && <span className="text-xl mr-2">✓</span>}

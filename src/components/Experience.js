@@ -1,15 +1,7 @@
 'use client';
 import { motion } from 'framer-motion';
-
-// Text gradient animation for smooth color flow
-const gradientAnimation = {
-  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-  transition: {
-    duration: 5,
-    repeat: Infinity,
-    ease: "linear",
-  },
-};
+import { useThemeStyles } from '@/hooks/useThemeStyles';
+import { gradientAnimation, fadeInDown, fadeInUp } from '@/styles/animations';
 
 const experiences = [
   {
@@ -121,53 +113,63 @@ const itemRight = {
 };
 
 export default function Experience() {
+  const { themeStyles, effectiveTheme } = useThemeStyles();
+
   return (
-    <section id="experience" className="py-20 bg-black relative overflow-hidden">
-      {/* Background gradient effect */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-purple-900/5 to-black pointer-events-none"></div>
+    <section id="experience" className={`py-20 ${themeStyles.sectionBg} relative overflow-hidden transition-all duration-500 ease-in-out`}>
+      {/* Background gradient effect - Theme-aware */}
+      <div className={`absolute inset-0 pointer-events-none transition-all duration-500 ${
+        effectiveTheme === 'dark' 
+          ? 'bg-gradient-to-b from-black via-purple-900/5 to-black' 
+          : 'bg-gradient-to-b from-gray-50 via-purple-50/20 to-gray-50'
+      }`}></div>
       
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <motion.h2
-          className="text-4xl md:text-5xl font-extrabold text-center mb-6"
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
+          className={`text-4xl md:text-5xl font-extrabold text-center mb-6 ${themeStyles.headingText} transition-colors duration-500`}
+          variants={fadeInDown}
+          initial="hidden"
+          whileInView="visible"
+          exit="hidden"
           viewport={{ once: false, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
         >
           <motion.span
             className="inline-block"
             style={{
-              backgroundImage: "linear-gradient(90deg, #FE7743, #ffffff, #FE7743)",
+              backgroundImage: themeStyles.subtitleGradient,
               backgroundSize: "200% auto",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
               display: "inline-block",
+              transition: 'background-image 0.5s ease-in-out'
             }}
             animate={gradientAnimation}
           >
             Professional
           </motion.span>{' '}
-          <span className="text-primary">Experience</span>
+          <span className={effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'}>Experience</span>
         </motion.h2>
 
         <motion.p
-          className="text-lg text-muted text-center max-w-3xl mx-auto mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
+          className={`text-lg ${themeStyles.descriptionText} text-center max-w-3xl mx-auto mb-16 transition-colors duration-500`}
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          exit="hidden"
           viewport={{ once: false, amount: 0.3 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ delay: 0.2 }}
         >
-          With over <span className="text-primary font-semibold">7+ years</span> of progressive experience in full-stack development, I have evolved from building foundational web applications to leading high-performing frontend teams and architecting scalable UI solutions. My journey spans from web development to senior software development, specializing in modern JavaScript frameworks, performance optimization, and team leadership in agile environments.
+          With over <span className={`${effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'} font-semibold transition-colors duration-500`}>7+ years</span> of progressive experience in full-stack development, I have evolved from building foundational web applications to leading high-performing frontend teams and architecting scalable UI solutions. My journey spans from web development to senior software development, specializing in modern JavaScript frameworks, performance optimization, and team leadership in agile environments.
         </motion.p>
 
         {/* Snake Ladder Timeline */}
         <div className="relative">
-          {/* Vertical line connecting all experiences */}
+          {/* Vertical line connecting all experiences - Theme-aware */}
           <motion.div
-            className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-purple-500 via-blue-500 to-green-500 opacity-30 hidden lg:block"
+            className={`absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-purple-500 via-blue-500 to-green-500 hidden lg:block transition-opacity duration-500 ${
+              effectiveTheme === 'dark' ? 'opacity-30' : 'opacity-40'
+            }`}
             initial={{ scaleY: 0 }}
             whileInView={{ scaleY: 1 }}
             viewport={{ once: false, amount: 0.3 }}
@@ -197,7 +199,9 @@ export default function Experience() {
                 >
                   {/* Year Badge - Center */}
                   <motion.div
-                    className={`relative z-20 flex-shrink-0 w-32 h-32 lg:w-40 lg:h-40 rounded-full bg-gradient-to-br ${exp.color} flex items-center justify-center shadow-2xl border-4 border-primary`}
+                    className={`relative z-20 flex-shrink-0 w-32 h-32 lg:w-40 lg:h-40 rounded-full bg-gradient-to-br ${exp.color} flex items-center justify-center shadow-2xl border-4 transition-colors duration-500 ${
+                      effectiveTheme === 'dark' ? 'border-[#FE7743]' : 'border-[#E65100]'
+                    }`}
                     whileHover={{ scale: 1.1, rotate: 360 }}
                     transition={{ duration: 0.6 }}
                   >
@@ -211,7 +215,7 @@ export default function Experience() {
                       className={`absolute inset-0 rounded-full border-4 ${exp.borderColor}`}
                       animate={{
                         scale: [1, 1.2, 1],
-                        opacity: [0.5, 0.8, 0.5],
+                        opacity: effectiveTheme === 'dark' ? [0.5, 0.8, 0.5] : [0.3, 0.6, 0.3],
                       }}
                       transition={{
                         duration: 2,
@@ -223,7 +227,11 @@ export default function Experience() {
 
                   {/* Experience Card */}
                   <motion.div
-                    className={`flex-1 w-full lg:max-w-lg bg-gray-900/60 backdrop-blur-sm rounded-2xl shadow-xl p-6 md:p-8 border ${exp.borderColor} hover:border-opacity-100 transition-all duration-300`}
+                    className={`flex-1 w-full lg:max-w-lg backdrop-blur-sm rounded-2xl shadow-xl p-6 md:p-8 border transition-all duration-500 ${
+                      effectiveTheme === 'dark'
+                        ? `bg-gray-900/60 ${exp.borderColor} hover:border-opacity-100`
+                        : `bg-white/80 border-gray-300 hover:border-opacity-80`
+                    }`}
                     whileHover={{ scale: 1.02, y: -5 }}
                   >
                     <div className="flex items-start gap-4 mb-4">
@@ -233,7 +241,9 @@ export default function Experience() {
                       <div className="flex-1">
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-2">
                           <div>
-                            <h3 className="text-xl md:text-2xl font-bold text-primary mb-1">
+                            <h3 className={`text-xl md:text-2xl font-bold mb-1 transition-colors duration-500 ${
+                              effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'
+                            }`}>
                               {exp.company}
                             </h3>
                             <p className={`text-lg font-semibold bg-gradient-to-r ${exp.color} bg-clip-text text-transparent`}>
@@ -241,7 +251,9 @@ export default function Experience() {
                             </p>
                           </div>
                         </div>
-                        <p className="text-sm text-muted mb-4">{exp.period}</p>
+                        <p className={`text-sm mb-4 transition-colors duration-500 ${
+                          effectiveTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                        }`}>{exp.period}</p>
                       </div>
                     </div>
 
@@ -249,13 +261,17 @@ export default function Experience() {
                       {exp.responsibilities.slice(0, 4).map((resp, idx) => (
                         <motion.li
                           key={idx}
-                          className="text-white/90 text-sm md:text-base flex items-start gap-2"
+                          className={`text-sm md:text-base flex items-start gap-2 transition-colors duration-500 ${
+                            effectiveTheme === 'dark' ? 'text-white/90' : 'text-gray-700'
+                          }`}
                           initial={{ opacity: 0, x: -10 }}
                           whileInView={{ opacity: 1, x: 0 }}
                           viewport={{ once: false }}
                           transition={{ delay: 0.1 * idx }}
                         >
-                          <span className={`text-primary mt-1.5`}>▸</span>
+                          <span className={`mt-1.5 transition-colors duration-500 ${
+                            effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'
+                          }`}>▸</span>
                           <span>{resp}</span>
                         </motion.li>
                       ))}
@@ -265,7 +281,11 @@ export default function Experience() {
                       {exp.tech.slice(0, 8).map((tech, idx) => (
                         <motion.span
                           key={idx}
-                          className={`px-3 py-1 rounded-full border ${exp.borderColor} text-primary bg-transparent hover:bg-primary hover:text-secondary transition-all duration-200 text-xs font-semibold`}
+                          className={`px-3 py-1 rounded-full border transition-all duration-500 text-xs font-semibold ${
+                            effectiveTheme === 'dark'
+                              ? `${exp.borderColor} text-[#FE7743] bg-transparent hover:bg-[#FE7743] hover:text-white`
+                              : `${exp.borderColor} text-[#E65100] bg-transparent hover:bg-[#E65100] hover:text-white`
+                          }`}
                           whileHover={{ scale: 1.1 }}
                           transition={{ duration: 0.2 }}
                         >
@@ -273,7 +293,11 @@ export default function Experience() {
                         </motion.span>
                       ))}
                       {exp.tech.length > 8 && (
-                        <span className="px-3 py-1 rounded-full border border-primary/30 text-primary/70 text-xs font-semibold">
+                        <span className={`px-3 py-1 rounded-full border text-xs font-semibold transition-colors duration-500 ${
+                          effectiveTheme === 'dark'
+                            ? 'border-[#FE7743]/30 text-[#FE7743]/70'
+                            : 'border-[#E65100]/30 text-[#E65100]/70'
+                        }`}>
                           +{exp.tech.length - 8} more
                         </span>
                       )}

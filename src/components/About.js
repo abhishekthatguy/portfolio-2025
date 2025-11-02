@@ -2,44 +2,41 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-
-// Text gradient animation for smooth color flow
-const gradientAnimation = {
-  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-  transition: {
-    duration: 5,
-    repeat: Infinity,
-    ease: "linear",
-  },
-};
+import { useThemeStyles } from '@/hooks/useThemeStyles';
+import { gradientAnimation, fadeInUp, fadeInDown } from '@/styles/animations';
 
 export default function About() {
+  const { themeStyles, effectiveTheme } = useThemeStyles();
+
   return (
-    <section id="about" className="py-20 bg-black">
+    <section 
+      id="about" 
+      className={`py-20 ${themeStyles.sectionBg} transition-all duration-500 ease-in-out`}
+    >
       <div className="max-w-7xl mx-auto px-4">
         <motion.h2
-          className="text-4xl md:text-5xl font-extrabold text-center mb-16"
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          className={`text-4xl md:text-5xl font-extrabold text-center mb-16 ${themeStyles.headingText} transition-colors duration-500`}
+          variants={fadeInDown}
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
         >
           <motion.span
             className="inline-block"
             style={{
-              backgroundImage:
-                "linear-gradient(90deg, #FE7743, #ffffff, #FE7743)",
+              backgroundImage: themeStyles.subtitleGradient,
               backgroundSize: "200% auto",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
               display: "inline-block",
+              transition: 'background-image 0.5s ease-in-out'
             }}
             animate={gradientAnimation}
           >
             About
           </motion.span>{" "}
-          <span className="text-primary">Me</span>
+          <span className={effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'}>Me</span>
         </motion.h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -52,102 +49,102 @@ export default function About() {
             transition={{ duration: 0.7, ease: "easeOut" }}
           >
             <motion.h3
-              className="text-3xl md:text-4xl font-bold mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
+              className={`text-3xl md:text-4xl font-bold mb-6 ${themeStyles.headingText} transition-colors duration-500`}
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
               viewport={{ once: false, amount: 0.3 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              transition={{ delay: 0.1 }}
             >
               <motion.span
                 className="inline-block"
                 style={{
-                  backgroundImage:
-                    "linear-gradient(90deg, #FE7743, #ffffff, #FE7743)",
+                  backgroundImage: themeStyles.abhishekGradient,
                   backgroundSize: "200% auto",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
                   display: "inline-block",
+                  transition: 'background-image 0.5s ease-in-out'
                 }}
                 animate={gradientAnimation}
               >
                 Senior Frontend
               </motion.span>{" "}
-              <span className="text-primary">Architect</span>
+              <span className={effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'}>Architect</span>
             </motion.h3>
 
             <motion.div
-              className="space-y-4 text-lg text-muted leading-relaxed"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
+              className={`space-y-4 text-lg ${themeStyles.descriptionText} leading-relaxed transition-colors duration-500`}
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
               viewport={{ once: false, amount: 0.3 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ delay: 0.2 }}
             >
               <p>
                 As a{" "}
-                <span className="text-primary font-semibold">
+                <span className={`${effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'} font-semibold transition-colors duration-500`}>
                   Senior Frontend Architect
                 </span>
                 , my specialty is twofold: leading high-performing front-end
                 teams and designing high-performance, scalable UI architecture.
                 I have a deep, technical focus on performance optimization,
                 mastering{" "}
-                <span className="text-[#00D9FF] font-semibold">
+                <span className={`${effectiveTheme === 'dark' ? 'text-[#00D9FF]' : 'text-[#0288D1]'} font-semibold transition-colors duration-500`}>
                   Core Web Vitals
                 </span>{" "}
                 and profiling techniques to achieve top-tier PageSpeed scores.
               </p>
               <p>
                 My core expertise spans the{" "}
-                <span className="text-[#00D9FF] font-semibold">MERN stack</span>{" "}
+                <span className={`${effectiveTheme === 'dark' ? 'text-[#00D9FF]' : 'text-[#0288D1]'} font-semibold transition-colors duration-500`}>MERN stack</span>{" "}
                 (MongoDB, Express, React, Node.js),{" "}
-                <span className="text-[#00D9FF] font-semibold">TypeScript</span>
+                <span className={`${effectiveTheme === 'dark' ? 'text-[#00D9FF]' : 'text-[#0288D1]'} font-semibold transition-colors duration-500`}>TypeScript</span>
                 , and modern SSR frameworks like{" "}
-                <span className="text-[#00D9FF] font-semibold">Next.js</span>. I
+                <span className={`${effectiveTheme === 'dark' ? 'text-[#00D9FF]' : 'text-[#0288D1]'} font-semibold transition-colors duration-500`}>Next.js</span>. I
                 am toolkit-agnostic, selecting the best technology—from{" "}
-                <span className="text-[#00D9FF] font-semibold">Vue.js</span> to
+                <span className={`${effectiveTheme === 'dark' ? 'text-[#00D9FF]' : 'text-[#0288D1]'} font-semibold transition-colors duration-500`}>Vue.js</span> to
                 lightweight tools like{" "}
-                <span className="text-[#00D9FF] font-semibold">Alpine.js</span>{" "}
+                <span className={`${effectiveTheme === 'dark' ? 'text-[#00D9FF]' : 'text-[#0288D1]'} font-semibold transition-colors duration-500`}>Alpine.js</span>{" "}
                 and{" "}
-                <span className="text-[#00D9FF] font-semibold">
+                <span className={`${effectiveTheme === 'dark' ? 'text-[#00D9FF]' : 'text-[#0288D1]'} font-semibold transition-colors duration-500`}>
                   Tailwind CSS
                 </span>
                 —and guide my team in managing the end-to-end application
                 lifecycle via robust{" "}
-                <span className="text-[#00D9FF] font-semibold">DevOps</span> (
-                <span className="text-[#00D9FF] font-semibold">CI/CD</span>)
+                <span className={`${effectiveTheme === 'dark' ? 'text-[#00D9FF]' : 'text-[#0288D1]'} font-semibold transition-colors duration-500`}>DevOps</span> (
+                <span className={`${effectiveTheme === 'dark' ? 'text-[#00D9FF]' : 'text-[#0288D1]'} font-semibold transition-colors duration-500`}>CI/CD</span>)
                 pipelines.
               </p>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
               viewport={{ once: false, amount: 0.3 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ delay: 0.4 }}
               className="mt-8"
             >
               <Link href="/about">
                 <motion.button
-                  className="group relative border-2 border-primary text-primary px-8 py-3 rounded-full overflow-hidden transition-all duration-300"
+                  className={`group relative border-2 ${themeStyles.buttonBorder} ${themeStyles.buttonText} px-8 py-3 rounded-full overflow-hidden transition-all duration-500`}
                   whileHover={{
                     scale: 1.05,
-                    boxShadow:
-                      "0 0 30px rgba(254, 119, 67, 0.6), 0 0 60px rgba(254, 119, 67, 0.3), inset 0 0 20px rgba(254, 119, 67, 0.2)",
+                    boxShadow: themeStyles.buttonHoverShadow,
                   }}
                   whileTap={{ scale: 0.98 }}
                   style={{
-                    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
+                    boxShadow: themeStyles.buttonShadow,
+                    transition: 'box-shadow 0.5s ease, border-color 0.5s ease, color 0.5s ease'
                   }}
                 >
-                  <span className="relative z-10 transition-colors duration-300 group-hover:text-secondary">
+                  <span className="relative z-10 transition-colors duration-500 group-hover:text-white">
                     Learn More
                   </span>
                   <motion.div
-                    className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    className={`absolute inset-0 ${themeStyles.buttonHoverBg} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
                     initial={false}
                   />
                 </motion.button>
@@ -169,9 +166,9 @@ export default function About() {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Animated circular border glow effect */}
+              {/* Animated circular border glow effect - Theme-aware */}
               <motion.div
-                className="absolute inset-0 rounded-full border-4 border-primary"
+                className={`absolute inset-0 rounded-full border-4 ${effectiveTheme === 'dark' ? 'border-[#FE7743]' : 'border-[#E65100]'} transition-colors duration-500`}
                 animate={{
                   scale: [1, 1.1, 1],
                   opacity: [0.3, 0.5, 0.3],
@@ -184,7 +181,12 @@ export default function About() {
               />
 
               <motion.div
-                className="relative w-full h-full rounded-full overflow-hidden border-4 border-primary shadow-2xl z-10"
+                className={`relative w-full h-full rounded-full overflow-hidden border-4 ${effectiveTheme === 'dark' ? 'border-[#FE7743]' : 'border-[#E65100]'} shadow-2xl z-10 transition-colors duration-500`}
+                style={{
+                  boxShadow: effectiveTheme === 'dark' 
+                    ? '0 25px 50px -12px rgba(254, 119, 67, 0.25), 0 0 0 1px rgba(254, 119, 67, 0.1)'
+                    : '0 25px 50px -12px rgba(230, 81, 0, 0.25), 0 0 0 1px rgba(230, 81, 0, 0.1)'
+                }}
                 initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
                 whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
                 exit={{ opacity: 0, scale: 0.8, rotate: 10 }}
@@ -192,7 +194,7 @@ export default function About() {
                 transition={{ duration: 0.7, ease: "easeOut" }}
               >
                 <Image
-                  src="/about_profilev2.png"
+                  src="/about_profile.png"
                   alt="Abhishek Singh - Senior Frontend Architect"
                   fill
                   className="object-cover object-top"

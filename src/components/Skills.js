@@ -1,15 +1,7 @@
 'use client';
 import { motion } from 'framer-motion';
-
-// Text gradient animation for smooth color flow
-const gradientAnimation = {
-  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-  transition: {
-    duration: 5,
-    repeat: Infinity,
-    ease: "linear",
-  },
-};
+import { useThemeStyles } from '@/hooks/useThemeStyles';
+import { gradientAnimation, fadeInDown, fadeInUp } from '@/styles/animations';
 
 const skills = [
   {
@@ -71,43 +63,47 @@ const item = {
 };
 
 export default function Skills() {
+  const { themeStyles, effectiveTheme } = useThemeStyles();
+
   return (
-    <section id="skills" className="py-20 bg-black">
+    <section id="skills" className={`py-20 ${themeStyles.sectionBg} transition-all duration-500 ease-in-out`}>
       <div className="max-w-7xl mx-auto px-4">
         <motion.h2
-          className="text-4xl md:text-5xl font-extrabold text-center mb-6"
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
+          className={`text-4xl md:text-5xl font-extrabold text-center mb-6 ${themeStyles.headingText} transition-colors duration-500`}
+          variants={fadeInDown}
+          initial="hidden"
+          whileInView="visible"
+          exit="hidden"
           viewport={{ once: false, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
         >
           <motion.span
             className="inline-block"
             style={{
-              backgroundImage: "linear-gradient(90deg, #FE7743, #ffffff, #FE7743)",
+              backgroundImage: themeStyles.subtitleGradient,
               backgroundSize: "200% auto",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
               display: "inline-block",
+              transition: 'background-image 0.5s ease-in-out'
             }}
             animate={gradientAnimation}
           >
             Technical
           </motion.span>{' '}
-          <span className="text-primary">Skills</span>
+          <span className={effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'}>Skills</span>
         </motion.h2>
 
         <motion.p
-          className="text-lg text-muted text-center max-w-3xl mx-auto mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
+          className={`text-lg ${themeStyles.descriptionText} text-center max-w-3xl mx-auto mb-16 transition-colors duration-500`}
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          exit="hidden"
           viewport={{ once: false, amount: 0.3 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ delay: 0.2 }}
         >
-          As a <span className="text-primary font-semibold">Senior Frontend Architect</span>, I bring a comprehensive skill set that spans from deep technical expertise in modern frameworks to architectural leadership and performance optimization. My experience is structured across five core specializations that enable me to build, optimize, and deploy scalable applications.
+          As a <span className={`${effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'} font-semibold transition-colors duration-500`}>Senior Frontend Architect</span>, I bring a comprehensive skill set that spans from deep technical expertise in modern frameworks to architectural leadership and performance optimization. My experience is structured across five core specializations that enable me to build, optimize, and deploy scalable applications.
         </motion.p>
 
         <motion.div
@@ -122,17 +118,29 @@ export default function Skills() {
             <motion.div
               key={group.category}
               variants={item}
-              className="bg-gray-900/40 rounded-2xl shadow-lg p-6 md:p-8 border border-gray-800 hover:border-primary/50 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 group"
+              className={`rounded-2xl shadow-lg p-6 md:p-8 border transition-all duration-500 hover:shadow-2xl group ${
+                effectiveTheme === 'dark' 
+                  ? 'bg-gray-900/40 border-gray-800 hover:border-[#FE7743]/50 hover:shadow-[#FE7743]/10' 
+                  : 'bg-white/80 border-gray-300 hover:border-[#E65100]/50 hover:shadow-[#E65100]/10'
+              }`}
             >
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-3xl">{group.emoji}</span>
-                <h3 className="text-xl md:text-2xl font-bold text-primary">{group.category}</h3>
+                <h3 className={`text-xl md:text-2xl font-bold transition-colors duration-500 ${
+                  effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'
+                }`}>
+                  {group.category}
+                </h3>
               </div>
               <div className="flex flex-wrap gap-2.5">
                 {group.items.map((skill) => (
                   <motion.span
                     key={skill}
-                    className="px-3 py-1.5 rounded-full border border-primary/50 text-primary bg-transparent hover:bg-primary hover:text-secondary transition-all duration-200 text-sm font-semibold cursor-default"
+                    className={`px-3 py-1.5 rounded-full border transition-all duration-500 text-sm font-semibold cursor-default ${
+                      effectiveTheme === 'dark'
+                        ? 'border-[#FE7743]/50 text-[#FE7743] bg-transparent hover:bg-[#FE7743] hover:text-white'
+                        : 'border-[#E65100]/50 text-[#E65100] bg-transparent hover:bg-[#E65100] hover:text-white'
+                    }`}
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.2 }}
                   >
