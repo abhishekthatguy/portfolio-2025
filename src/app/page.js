@@ -25,15 +25,21 @@ export default function Home() {
             <div className="mb-4 md:mb-0">
               <p className="text-sm">© 2025 Abhishek Singh. All rights reserved.</p>
             </div>
-            <div className="flex space-x-6">
+            <div className="flex space-x-6 flex-wrap justify-center">
+              <Link href="/portfolio" className="text-sm hover:text-blue-400 transition-colors">
+                Portfolio
+              </Link>
+              <Link href="/about" className="text-sm hover:text-blue-400 transition-colors">
+                About
+              </Link>
+              <Link href="/contact" className="text-sm hover:text-blue-400 transition-colors">
+                Contact
+              </Link>
               <Link href="/terms" className="text-sm hover:text-blue-400 transition-colors">
                 Terms & Conditions
               </Link>
               <Link href="/privacy" className="text-sm hover:text-blue-400 transition-colors">
                 Privacy Policy
-              </Link>
-              <Link href="/contact" className="text-sm hover:text-blue-400 transition-colors">
-                Contact
               </Link>
             </div>
           </div>

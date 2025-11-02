@@ -40,6 +40,11 @@ export const useTheme = () => {
     if (metaThemeColor) {
       metaThemeColor.setAttribute('content', effectiveTheme === 'dark' ? '#000000' : '#ffffff');
     }
+
+    // Emit custom event for theme change
+    window.dispatchEvent(new CustomEvent('themechange', { 
+      detail: { theme: newTheme, effectiveTheme } 
+    }));
   };
 
   // Initialize theme on mount
@@ -122,6 +127,8 @@ export const useTheme = () => {
     mounted,
   };
 };
+
+
 
 
 
