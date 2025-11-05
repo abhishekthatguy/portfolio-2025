@@ -81,86 +81,70 @@ export default function ProjectDetailPage({ params }) {
       <section className="py-20 bg-black">
         <div className="max-w-6xl mx-auto px-4">
           <div className="space-y-16">
-            {/* Features */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.7 }}
-              className={`bg-gray-900/40 rounded-2xl p-8 md:p-12 border ${project.borderColor}`}
-            >
-              <h2 className="text-3xl font-bold text-primary mb-6">Key Features</h2>
-              <ul className="space-y-3">
-                {project.features.map((feature, idx) => (
-                  <motion.li
-                    key={idx}
-                    className="text-muted text-base md:text-lg leading-relaxed flex items-start gap-3"
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.1 * idx }}
+            {/* STAR Method Sections */}
+            {project.star && project.star.length > 0 && (
+              <>
+                {project.star.map((starItem, starIdx) => (
+                  <motion.div
+                    key={starIdx}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.7, delay: starIdx * 0.1 }}
+                    className={`bg-gray-900/40 rounded-2xl p-8 md:p-12 border ${project.borderColor}`}
                   >
-                    <span className="text-primary mt-1">▸</span>
-                    <span>{feature}</span>
-                  </motion.li>
+                    <h2 className="text-3xl font-bold text-primary mb-6">
+                      {starIdx === 0 ? 'Project Overview' : `Implementation ${starIdx + 1}`}
+                    </h2>
+                    
+                    <div className="space-y-6">
+                      {/* Situation */}
+                      <div>
+                        <h3 className="text-xl font-bold text-primary mb-3 flex items-center gap-2">
+                          <span className="text-primary">📋</span>
+                          <span>Situation</span>
+                        </h3>
+                        <p className="text-muted text-base md:text-lg leading-relaxed">
+                          {starItem.situation}
+                        </p>
+                      </div>
+
+                      {/* Task */}
+                      <div>
+                        <h3 className="text-xl font-bold text-primary mb-3 flex items-center gap-2">
+                          <span className="text-primary">🎯</span>
+                          <span>Task</span>
+                        </h3>
+                        <p className="text-muted text-base md:text-lg leading-relaxed">
+                          {starItem.task}
+                        </p>
+                      </div>
+
+                      {/* Action */}
+                      <div>
+                        <h3 className="text-xl font-bold text-primary mb-3 flex items-center gap-2">
+                          <span className="text-primary">⚡</span>
+                          <span>Action</span>
+                        </h3>
+                        <p className="text-muted text-base md:text-lg leading-relaxed">
+                          {starItem.action}
+                        </p>
+                      </div>
+
+                      {/* Result */}
+                      <div>
+                        <h3 className="text-xl font-bold text-primary mb-3 flex items-center gap-2">
+                          <span className="text-primary">🏆</span>
+                          <span>Result</span>
+                        </h3>
+                        <p className="text-muted text-base md:text-lg leading-relaxed">
+                          {starItem.result}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
                 ))}
-              </ul>
-            </motion.div>
-
-            {/* Challenges */}
-            {project.challenges && project.challenges.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.7, delay: 0.1 }}
-                className={`bg-gray-900/40 rounded-2xl p-8 md:p-12 border ${project.borderColor}`}
-              >
-                <h2 className="text-3xl font-bold text-primary mb-6">Challenges & Solutions</h2>
-                <ul className="space-y-3">
-                  {project.challenges.map((challenge, idx) => (
-                    <motion.li
-                      key={idx}
-                      className="text-muted text-base md:text-lg leading-relaxed flex items-start gap-3"
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.1 * idx }}
-                    >
-                      <span className="text-primary mt-1">▸</span>
-                      <span>{challenge}</span>
-                    </motion.li>
-                  ))}
-                </ul>
-              </motion.div>
-            )}
-
-            {/* Results */}
-            {project.results && project.results.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.7, delay: 0.2 }}
-                className={`bg-gray-900/40 rounded-2xl p-8 md:p-12 border ${project.borderColor}`}
-              >
-                <h2 className="text-3xl font-bold text-primary mb-6">Results & Impact</h2>
-                <ul className="space-y-3">
-                  {project.results.map((result, idx) => (
-                    <motion.li
-                      key={idx}
-                      className="text-muted text-base md:text-lg leading-relaxed flex items-start gap-3"
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.1 * idx }}
-                    >
-                      <span className="text-primary mt-1">▸</span>
-                      <span>{result}</span>
-                    </motion.li>
-                  ))}
-                </ul>
-              </motion.div>
+              </>
             )}
 
             {/* Technology Stack */}

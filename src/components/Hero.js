@@ -298,6 +298,7 @@ const WaterDropletEffect = ({ sectionRef }) => {
   );
 };
 
+// Minimal broken star particle effect
 const ParticleAnimation = () => {
   const canvasRef = useRef(null);
   const { getEffectiveTheme } = useTheme();
@@ -310,12 +311,10 @@ const ParticleAnimation = () => {
   };
 
   const config = useMemo(() => ({
-    particleCount: 30,
-    connectionDistance: 200,
-    particleSpeed: 0.5,
-    particleRadius: 2.5,
-    lineWidth: 2,
-    minConnections: 1,
+    starCount: 8, // Reduced from 30 to minimal effect
+    twinkleSpeed: 0.003,
+    minSize: 1.5,
+    maxSize: 3,
   }), []);
 
   const isLoadedRef = useRef(false);
@@ -325,16 +324,14 @@ const ParticleAnimation = () => {
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    let particles = [];
+    let stars = [];
     let animationId;
-    let edgesCache = null;
-    let frameSkip = 0;
-    const FRAME_SKIP = 1;
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      edgesCache = null;
+      // Reinitialize stars on resize
+      stars = [];
     };
     
     resizeCanvas();
@@ -346,71 +343,69 @@ const ParticleAnimation = () => {
     };
     window.addEventListener('resize', handleResize, { passive: true });
 
-    class Particle {
+    class BrokenStar {
       constructor() {
         this.reset();
-        const theme = getEffectiveTheme();
-        const colors = theme === 'dark' 
-          ? { primaryColor: { r: 254, g: 119, b: 67 }, secondaryColor: { r: 0, g: 217, b: 255 } }
-          : { primaryColor: { r: 238, g: 100, b: 50 }, secondaryColor: { r: 0, g: 180, b: 220 } };
+        const colors = getThemeColors();
         this.color = Math.random() > 0.5 ? colors.primaryColor : colors.secondaryColor;
       }
 
       reset() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.vx = (Math.random() - 0.5) * config.particleSpeed;
-        this.vy = (Math.random() - 0.5) * config.particleSpeed;
-        this.life = Math.random();
+        this.size = config.minSize + Math.random() * (config.maxSize - config.minSize);
+        this.twinkle = Math.random();
+        this.twinkleSpeed = config.twinkleSpeed * (0.5 + Math.random());
+        // Random rotation for broken appearance
+        this.rotation = Math.random() * Math.PI * 2;
+        this.points = 4 + Math.floor(Math.random() * 3); // 4-6 points for broken star
       }
 
       update() {
-        this.x += this.vx;
-        this.y += this.vy;
-
-        if (this.x < 0 || this.x > canvas.width) {
-          this.vx *= -1;
-          this.x = Math.max(0, Math.min(canvas.width, this.x));
-        }
-        if (this.y < 0 || this.y > canvas.height) {
-          this.vy *= -1;
-          this.y = Math.max(0, Math.min(canvas.height, this.y));
-        }
-
-        if (Math.random() < 0.02) {
-          this.vx += (Math.random() - 0.5) * 0.2;
-          this.vy += (Math.random() - 0.5) * 0.2;
-          
-          const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-          if (speed > config.particleSpeed * 2) {
-            this.vx = (this.vx / speed) * config.particleSpeed * 2;
-            this.vy = (this.vy / speed) * config.particleSpeed * 2;
-          }
-        }
-
-        this.life += 0.005;
-        if (this.life > 1) this.life -= 1;
+        this.twinkle += this.twinkleSpeed;
+        if (this.twinkle > 1) this.twinkle -= 2;
       }
 
       draw() {
-        const glowIntensity = 0.7 + Math.sin(this.life * Math.PI * 2) * 0.3;
-        const alpha = 0.85 * glowIntensity;
+        const twinkleIntensity = Math.abs(Math.sin(this.twinkle * Math.PI));
+        const alpha = 0.3 + twinkleIntensity * 0.4; // Subtle visibility
         
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.8})`;
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
         
+        // Draw broken star shape
         ctx.beginPath();
-        ctx.arc(this.x, this.y, config.particleRadius, 0, Math.PI * 2);
+        const outerRadius = this.size;
+        const innerRadius = this.size * 0.4;
+        
+        for (let i = 0; i < this.points * 2; i++) {
+          const angle = (Math.PI * i) / this.points;
+          const radius = i % 2 === 0 ? outerRadius : innerRadius;
+          const x = Math.cos(angle) * radius;
+          const y = Math.sin(angle) * radius;
+          
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.closePath();
+        
+        ctx.shadowBlur = 4 * twinkleIntensity;
+        ctx.shadowColor = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.6})`;
         ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
         ctx.fill();
         
+        // Add subtle glow points
         ctx.beginPath();
-        ctx.arc(this.x, this.y, config.particleRadius * 0.6, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 1.2})`;
+        ctx.arc(0, 0, this.size * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.5})`;
         ctx.fill();
         
+        ctx.restore();
         ctx.shadowBlur = 0;
-        ctx.shadowColor = 'transparent';
       }
     }
 
@@ -419,91 +414,22 @@ const ParticleAnimation = () => {
       
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      if (particles.length === 0) {
-        particles = Array.from({ length: config.particleCount }, () => new Particle());
+      if (stars.length === 0) {
+        stars = Array.from({ length: config.starCount }, () => new BrokenStar());
       }
 
-      particles.forEach(particle => particle.update());
+      stars.forEach(star => {
+        star.update();
+        star.draw();
+      });
 
-      const connections = new Set();
-      const getConnectionKey = (i, j) => i < j ? `${i}-${j}` : `${j}-${i}`;
-      const maxDistanceSquared = config.connectionDistance * config.connectionDistance;
-      
-      frameSkip++;
-      const shouldRecalculateMST = !edgesCache || frameSkip > FRAME_SKIP;
-
-      if (shouldRecalculateMST) {
-        frameSkip = 0;
-        
-        const edges = [];
-        for (let i = 0; i < particles.length; i++) {
-          for (let j = i + 1; j < particles.length; j++) {
-            const dx = particles[i].x - particles[j].x;
-            const dy = particles[i].y - particles[j].y;
-            const distSquared = dx * dx + dy * dy;
-            edges.push({ i, j, dist: Math.sqrt(distSquared), distSquared });
-          }
-        }
-
-        edges.sort((a, b) => a.distSquared - b.distSquared);
-
-        const uf = new UnionFind(particles.length);
-        const mstConnections = new Set();
-        let mstEdges = 0;
-
-        for (const edge of edges) {
-          if (uf.union(edge.i, edge.j)) {
-            const key = getConnectionKey(edge.i, edge.j);
-            mstConnections.add(key);
-            
-            if (!edgesCache) edgesCache = { mst: [], additional: [] };
-            if (mstEdges === 0) edgesCache.mst = [];
-            edgesCache.mst.push({ i: edge.i, j: edge.j, dist: edge.dist });
-            
-            mstEdges++;
-            if (mstEdges === particles.length - 1) break;
-          }
-        }
-
-        edgesCache.additional = [];
-        for (let i = 0; i < particles.length; i++) {
-          for (let j = i + 1; j < particles.length; j++) {
-            const key = getConnectionKey(i, j);
-            if (mstConnections.has(key)) continue;
-
-            const dx = particles[i].x - particles[j].x;
-            const dy = particles[i].y - particles[j].y;
-            const distSquared = dx * dx + dy * dy;
-
-            if (distSquared < maxDistanceSquared) {
-              edgesCache.additional.push({ i, j, dist: Math.sqrt(distSquared) });
-            }
-          }
-        }
-      }
-
-      if (edgesCache) {
-        edgesCache.mst.forEach(edge => {
-          drawConnection(particles[edge.i], particles[edge.j], edge.dist);
-          connections.add(getConnectionKey(edge.i, edge.j));
-        });
-
-        edgesCache.additional.forEach(edge => {
-          const key = getConnectionKey(edge.i, edge.j);
-          if (!connections.has(key)) {
-            drawConnection(particles[edge.i], particles[edge.j], edge.dist);
-          }
-        });
-      }
-
-      particles.forEach(particle => particle.draw());
       animationId = requestAnimationFrame(animate);
     };
 
     const startAnimation = () => {
       if (isLoadedRef.current) return;
       isLoadedRef.current = true;
-      particles = Array.from({ length: config.particleCount }, () => new Particle());
+      stars = Array.from({ length: config.starCount }, () => new BrokenStar());
       const start = (window.requestIdleCallback || ((cb) => setTimeout(cb, 50)));
       start(() => animate());
     };
@@ -516,8 +442,8 @@ const ParticleAnimation = () => {
     }
 
     const observer = new MutationObserver(() => {
-      if (particles.length > 0) {
-        particles = Array.from({ length: config.particleCount }, () => new Particle());
+      if (stars.length > 0) {
+        stars = Array.from({ length: config.starCount }, () => new BrokenStar());
       }
     });
     
@@ -525,66 +451,6 @@ const ParticleAnimation = () => {
       attributes: true,
       attributeFilter: ['class', 'data-theme']
     });
-
-    const drawConnection = (p1, p2, dist) => {
-      const opacity = 1 - (dist / config.connectionDistance);
-      const lineAlpha = opacity * 0.7;
-      
-      const gradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
-      const midColor = {
-        r: (p1.color.r + p2.color.r) / 2,
-        g: (p1.color.g + p2.color.g) / 2,
-        b: (p1.color.b + p2.color.b) / 2
-      };
-      
-      gradient.addColorStop(0, `rgba(${p1.color.r}, ${p1.color.g}, ${p1.color.b}, ${lineAlpha})`);
-      gradient.addColorStop(0.5, `rgba(${midColor.r}, ${midColor.g}, ${midColor.b}, ${lineAlpha * 1.3})`);
-      gradient.addColorStop(1, `rgba(${p2.color.r}, ${p2.color.g}, ${p2.color.b}, ${lineAlpha})`);
-      
-      ctx.shadowBlur = 15 * opacity;
-      ctx.shadowColor = `rgba(${midColor.r}, ${midColor.g}, ${midColor.b}, ${lineAlpha * 0.8})`;
-      
-      ctx.beginPath();
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
-      ctx.strokeStyle = gradient;
-      ctx.lineWidth = config.lineWidth * opacity * 1.5;
-      ctx.stroke();
-      
-      ctx.shadowBlur = 0;
-      ctx.shadowColor = 'transparent';
-    };
-
-    class UnionFind {
-      constructor(size) {
-        this.parent = Array.from({ length: size }, (_, i) => i);
-        this.rank = new Array(size).fill(0);
-      }
-
-      find(x) {
-        if (this.parent[x] !== x) {
-          this.parent[x] = this.find(this.parent[x]);
-        }
-        return this.parent[x];
-      }
-
-      union(x, y) {
-        const rootX = this.find(x);
-        const rootY = this.find(y);
-
-        if (rootX === rootY) return false;
-
-        if (this.rank[rootX] < this.rank[rootY]) {
-          this.parent[rootX] = rootY;
-        } else if (this.rank[rootX] > this.rank[rootY]) {
-          this.parent[rootY] = rootX;
-        } else {
-          this.parent[rootY] = rootX;
-          this.rank[rootX]++;
-        }
-        return true;
-      }
-    }
 
     return () => {
       window.removeEventListener('resize', handleResize);
@@ -598,7 +464,7 @@ const ParticleAnimation = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-none z-[5]"
+      className="absolute inset-0 w-full h-full pointer-events-none z-[5] opacity-60"
       style={{ background: 'transparent' }}
     />
   );
@@ -618,12 +484,12 @@ export default function Hero() {
       ref={sectionRef}
       className={`h-screen min-h-[600px] sm:min-h-[700px] md:min-h-screen flex items-center justify-center ${themeStyles.sectionBg} relative overflow-hidden transition-all duration-500 ease-in-out`}
     >
-      {/* Background Layers */}
-      <div className="absolute inset-0 w-full h-full pointer-events-none z-0" aria-hidden="true">
-        {/* Background Image */}
+      {/* Background Layers - Clear z-index separation */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none z-[1]" aria-hidden="true">
+        {/* Background Image - Right aligned */}
         <motion.div
           className="absolute inset-0 w-full h-full"
-          animate={{ opacity: [1, 0.5, 1], scale: [1, 1.01, 1] }}
+          animate={{ opacity: effectiveTheme === 'dark' ? [0.25, 0.35, 0.25] : [0.4, 0.5, 0.4], scale: [1, 1.01, 1] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           style={{ contain: 'layout style paint', position: 'relative' }}
         >
@@ -635,42 +501,74 @@ export default function Hero() {
             quality={85}
             sizes="100vw"
             className="object-contain"
-            style={{ opacity: 1, objectPosition: 'right top' }}
+            style={{ 
+              opacity: effectiveTheme === 'dark' ? 0.3 : 0.45,
+              objectPosition: 'right top',
+              filter: effectiveTheme === 'dark' ? 'brightness(0.6) contrast(1.2)' : 'brightness(1.1) contrast(0.9)'
+            }}
           />
           
-          {/* Theme-aware gradient overlays - Enhanced transitions */}
+          {/* Theme-aware gradient overlays - Enhanced visibility */}
           <div 
             className="absolute inset-0 transition-all duration-500 ease-in-out" 
-            style={{ background: themeStyles.radialGradient }}
+            style={{ 
+              background: themeStyles.radialGradient,
+              opacity: effectiveTheme === 'dark' ? 0.85 : 0.75
+            }}
           />
           <div 
             className="absolute inset-0 transition-all duration-500 ease-in-out" 
-            style={{ background: themeStyles.leftGradient }}
+            style={{ 
+              background: themeStyles.leftGradient,
+              opacity: effectiveTheme === 'dark' ? 0.9 : 0.8
+            }}
           />
           <div 
             className="absolute inset-0 transition-all duration-500 ease-in-out" 
-            style={{ background: themeStyles.bottomGradient }}
+            style={{ 
+              background: themeStyles.bottomGradient,
+              opacity: effectiveTheme === 'dark' ? 0.8 : 0.7
+            }}
           />
         </motion.div>
         
-        {/* Gradient Overlay - Theme adapted */}
-        <div className={`absolute inset-0 transition-all duration-500 ease-in-out ${themeStyles.overlayGradient}`} />
+        {/* Gradient Overlay - Theme adapted with better visibility */}
+        <div 
+          className={`absolute inset-0 transition-all duration-500 ease-in-out ${themeStyles.overlayGradient}`}
+          style={{ opacity: effectiveTheme === 'dark' ? 0.7 : 0.6 }}
+        />
         
         {/* Center Radial Gradient */}
         <div 
           className="absolute inset-0 transition-all duration-500 ease-in-out" 
-          style={{ background: themeStyles.centerRadial }}
+          style={{ 
+            background: themeStyles.centerRadial,
+            opacity: effectiveTheme === 'dark' ? 0.75 : 0.65
+          }}
         />
       </div>
       
-      {/* Animated Effects */}
+      {/* Animated Effects - Clear layer separation */}
       <ParticleAnimation />
       <WaterDropletEffect sectionRef={sectionRef} />
       
-      {/* Content */}
-      <div className="container mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-12 text-center relative z-10" style={{ contain: 'layout style' }}>
+      {/* Content - Highest z-index for clear visibility */}
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-12 text-center relative z-[10]" style={{ contain: 'layout style' }}>
+        {/* Subtle backdrop for text readability */}
+        <div 
+          className={`absolute inset-0 -z-10 transition-all duration-500 ${
+            effectiveTheme === 'dark' 
+              ? 'bg-gradient-to-b from-black/20 via-transparent to-black/30' 
+              : 'bg-gradient-to-b from-white/30 via-transparent to-white/20'
+          }`}
+          style={{ 
+            backdropFilter: 'blur(1px)',
+            WebkitBackdropFilter: 'blur(1px)'
+          }}
+        />
+        
         {/* Title Section */}
-        <motion.div variants={container} initial="hidden" animate="show" className="mb-3 sm:mb-4 md:mb-6">
+        <motion.div variants={container} initial="hidden" animate="show" className="mb-3 sm:mb-4 md:mb-6 relative z-10">
           <motion.div
             variants={item}
             className="mb-2 sm:mb-3 md:mb-4"
@@ -745,14 +643,17 @@ export default function Hero() {
           
           {/* Subtitle */}
           <motion.h2
-            className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl mb-3 sm:mb-4 md:mb-6 relative inline-block px-2 sm:px-4"
+            className={`text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl mb-3 sm:mb-4 md:mb-6 relative inline-block px-2 sm:px-4 ${
+              effectiveTheme === 'dark' ? 'drop-shadow-[0_0_15px_rgba(0,0,0,0.8)]' : 'drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]'
+            }`}
             style={{
               backgroundImage: themeStyles.subtitleGradient,
               backgroundSize: "300% auto",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
-              transition: 'background-image 0.5s ease-in-out'
+              transition: 'background-image 0.5s ease-in-out',
+              filter: effectiveTheme === 'dark' ? 'drop-shadow(0 0 8px rgba(0,0,0,0.9))' : 'drop-shadow(0 0 6px rgba(255,255,255,0.9))'
             }}
             initial={false}
             animate={subtitleLoopAnimation}
@@ -770,6 +671,14 @@ export default function Hero() {
         >
           <motion.p
             className={`text-xs sm:text-sm md:text-base ${themeStyles.descriptionText} mb-3 sm:mb-4 md:mb-6 transition-colors duration-500`}
+            style={{
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
+              textRendering: 'optimizeLegibility',
+              textShadow: effectiveTheme === 'dark' 
+                ? '0 1px 2px rgba(0, 0, 0, 0.5)' 
+                : 'none'
+            }}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.4 }}
@@ -783,56 +692,115 @@ export default function Hero() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
           >
-            {techStacks.map((tech) => (
-              <motion.div
-                key={tech.name}
-                variants={techStackItem}
-                className="group relative"
-                whileHover={{ scale: 1.08, y: -3, transition: { duration: 0.2, ease: "easeOut" } }}
-              >
-                <div
-                  className={`relative px-2.5 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-full backdrop-blur-md border-2 ${themeStyles.techBadgeBorder} transition-all duration-500 ${effectiveTheme === 'dark' ? 'group-hover:border-white/70' : 'group-hover:border-gray-700/90'}`}
-                  style={{
-                    background: themeStyles.techBadgeBg(tech.bgColor),
-                    boxShadow: themeStyles.techBadgeShadow(tech.glowColor),
-                    transition: 'all 0.5s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = themeStyles.techBadgeHoverShadow(tech.glowColor);
-                    e.currentTarget.style.borderColor = effectiveTheme === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.7)' 
-                      : 'rgba(55, 65, 81, 0.9)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = themeStyles.techBadgeShadow(tech.glowColor);
-                    e.currentTarget.style.borderColor = '';
-                  }}
+            {techStacks.map((tech) => {
+              // Extract RGB values for premium gradient calculations
+              const colorMatch = tech.color.match(/#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})/);
+              const r = colorMatch ? parseInt(colorMatch[1], 16) : 79;
+              const g = colorMatch ? parseInt(colorMatch[2], 16) : 195;
+              const b = colorMatch ? parseInt(colorMatch[3], 16) : 247;
+              
+              // Create darker/lighter variants for gradients
+              const darkerR = Math.max(0, r - 20);
+              const darkerG = Math.max(0, g - 20);
+              const darkerB = Math.max(0, b - 20);
+              const lighterR = Math.min(255, r + 30);
+              const lighterG = Math.min(255, g + 30);
+              const lighterB = Math.min(255, b + 30);
+              
+              // Determine text color - white for most colors, dark for very light colors
+              const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+              const textColor = brightness > 180 ? '#1a1a1a' : '#ffffff';
+              
+              return (
+                <motion.div
+                  key={tech.name}
+                  variants={techStackItem}
+                  className="group relative"
+                  whileHover={{ scale: 1.1, y: -4, transition: { duration: 0.25, ease: "easeOut" } }}
                 >
-                  <span
-                    className="text-[10px] sm:text-xs md:text-sm font-bold flex items-center gap-1 sm:gap-1.5 relative z-10"
-                    style={{ 
-                      color: tech.color,
-                      textShadow: themeStyles.techTextShadow(tech.textShadow || '0 0 8px rgba(0, 0, 0, 0.5)', tech.color),
-                      transition: 'text-shadow 0.5s ease',
-                      fontWeight: '700'
+                  <div
+                    className="relative px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-full backdrop-blur-md border-2 transition-all duration-500"
+                    style={{
+                      background: effectiveTheme === 'dark'
+                        ? `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.85), rgba(${darkerR}, ${darkerG}, ${darkerB}, 0.95))`
+                        : `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.9), rgba(${lighterR}, ${lighterG}, ${lighterB}, 0.95))`,
+                      borderColor: effectiveTheme === 'dark'
+                        ? `rgba(${r}, ${g}, ${b}, 0.4)`
+                        : `rgba(${r}, ${g}, ${b}, 0.6)`,
+                      boxShadow: effectiveTheme === 'dark'
+                        ? `0 4px 20px rgba(0, 0, 0, 0.7), 0 0 30px rgba(${r}, ${g}, ${b}, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15)`
+                        : `0 4px 20px rgba(0, 0, 0, 0.15), 0 2px 12px rgba(${r}, ${g}, ${b}, 0.4), 0 0 35px rgba(${r}, ${g}, ${b}, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3)`,
+                      transition: 'all 0.5s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = effectiveTheme === 'dark'
+                        ? `0 8px 35px rgba(0, 0, 0, 0.9), 0 0 50px rgba(${r}, ${g}, ${b}, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.25)`
+                        : `0 8px 40px rgba(0, 0, 0, 0.2), 0 4px 20px rgba(${r}, ${g}, ${b}, 0.6), 0 0 50px rgba(${r}, ${g}, ${b}, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.4)`;
+                      e.currentTarget.style.borderColor = `rgba(${r}, ${g}, ${b}, ${effectiveTheme === 'dark' ? '0.7' : '0.9'})`;
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.background = effectiveTheme === 'dark'
+                        ? `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.95), rgba(${lighterR}, ${lighterG}, ${lighterB}, 1))`
+                        : `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 1), rgba(${lighterR}, ${lighterG}, ${lighterB}, 1))`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = effectiveTheme === 'dark'
+                        ? `0 4px 20px rgba(0, 0, 0, 0.7), 0 0 30px rgba(${r}, ${g}, ${b}, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15)`
+                        : `0 4px 20px rgba(0, 0, 0, 0.15), 0 2px 12px rgba(${r}, ${g}, ${b}, 0.4), 0 0 35px rgba(${r}, ${g}, ${b}, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3)`;
+                      e.currentTarget.style.borderColor = effectiveTheme === 'dark'
+                        ? `rgba(${r}, ${g}, ${b}, 0.4)`
+                        : `rgba(${r}, ${g}, ${b}, 0.6)`;
+                      e.currentTarget.style.transform = '';
+                      e.currentTarget.style.background = effectiveTheme === 'dark'
+                        ? `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.85), rgba(${darkerR}, ${darkerG}, ${darkerB}, 0.95))`
+                        : `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.9), rgba(${lighterR}, ${lighterG}, ${lighterB}, 0.95))`;
                     }}
                   >
-                    <span>{tech.name}</span>
-                    {tech.subtitle && (
-                      <span 
-                        className="text-[8px] sm:text-[10px] md:text-xs opacity-90 font-semibold"
-                        style={{ 
-                          textShadow: themeStyles.techTextShadow(tech.textShadow || '0 0 6px rgba(0, 0, 0, 0.5)', tech.color),
-                          transition: 'text-shadow 0.5s ease'
-                        }}
-                      >
-                        ({tech.subtitle})
-                      </span>
-                    )}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
+                    <span
+                      className="text-[10px] sm:text-xs md:text-sm font-extrabold flex items-center gap-1.5 sm:gap-2 relative z-10 tracking-wide"
+                      style={{ 
+                        color: textColor,
+                        textShadow: effectiveTheme === 'dark'
+                          ? textColor === '#ffffff'
+                            ? `0 1px 2px rgba(0, 0, 0, 0.8), 0 0 8px rgba(${r}, ${g}, ${b}, 0.4)`
+                            : `0 1px 2px rgba(0, 0, 0, 0.6), 0 0 4px rgba(${r}, ${g}, ${b}, 0.3)`
+                          : textColor === '#ffffff'
+                            ? `0 1px 2px rgba(0, 0, 0, 0.5), 0 0 6px rgba(${r}, ${g}, ${b}, 0.4)`
+                            : `0 1px 1px rgba(255, 255, 255, 0.6), 0 0 4px rgba(${r}, ${g}, ${b}, 0.2)`,
+                        transition: 'text-shadow 0.5s ease, color 0.5s ease',
+                        fontWeight: '800',
+                        letterSpacing: '0.025em',
+                        WebkitFontSmoothing: 'antialiased',
+                        MozOsxFontSmoothing: 'grayscale',
+                        textRendering: 'optimizeLegibility'
+                      }}
+                    >
+                      <span className="relative">{tech.name}</span>
+                      {tech.subtitle && (
+                        <span 
+                          className="text-[8px] sm:text-[10px] md:text-xs opacity-95 font-bold"
+                          style={{ 
+                            color: textColor,
+                            textShadow: effectiveTheme === 'dark'
+                              ? textColor === '#ffffff'
+                                ? `0 1px 1px rgba(0, 0, 0, 0.7), 0 0 6px rgba(${r}, ${g}, ${b}, 0.3)`
+                                : `0 1px 1px rgba(0, 0, 0, 0.5), 0 0 3px rgba(${r}, ${g}, ${b}, 0.2)`
+                              : textColor === '#ffffff'
+                                ? `0 1px 1px rgba(0, 0, 0, 0.4), 0 0 5px rgba(${r}, ${g}, ${b}, 0.3)`
+                                : `0 1px 1px rgba(255, 255, 255, 0.5), 0 0 3px rgba(${r}, ${g}, ${b}, 0.15)`,
+                            transition: 'text-shadow 0.5s ease',
+                            WebkitFontSmoothing: 'antialiased',
+                            MozOsxFontSmoothing: 'grayscale',
+                            textRendering: 'optimizeLegibility'
+                          }}
+                        >
+                          ({tech.subtitle})
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </motion.div>
         
@@ -852,15 +820,25 @@ export default function Hero() {
               key={button.label}
               href={button.href}
               download={button.download}
-              className={`group relative border-2 ${themeStyles.buttonBorder} ${themeStyles.buttonText} px-4 sm:px-5 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 rounded-full overflow-hidden transition-all duration-500 text-xs sm:text-sm md:text-base cursor-pointer flex items-center gap-2`}
+              className={`group relative border-2 ${themeStyles.buttonBorder} ${themeStyles.buttonText} px-4 sm:px-5 md:px-6 lg:px-8 py-2 sm:py-2.5 md:py-3 rounded-full overflow-hidden transition-all duration-500 text-xs sm:text-sm md:text-base cursor-pointer flex items-center gap-2 ${
+                effectiveTheme === 'light' 
+                  ? 'bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl' 
+                  : ''
+              }`}
               whileHover={{ 
                 scale: 1.05,
-                boxShadow: themeStyles.buttonHoverShadow
+                boxShadow: effectiveTheme === 'dark' 
+                  ? themeStyles.buttonHoverShadow
+                  : '0 0 35px rgba(230, 81, 0, 0.7), 0 0 70px rgba(230, 81, 0, 0.4), 0 8px 25px rgba(0, 0, 0, 0.25), inset 0 0 20px rgba(230, 81, 0, 0.25)'
               }}
               whileTap={{ scale: 0.98 }}
               style={{ 
-                boxShadow: themeStyles.buttonShadow,
-                transition: 'box-shadow 0.5s ease, border-color 0.5s ease, color 0.5s ease'
+                boxShadow: effectiveTheme === 'dark'
+                  ? themeStyles.buttonShadow
+                  : '0 4px 20px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(230, 81, 0, 0.4), 0 0 25px rgba(230, 81, 0, 0.3)',
+                transition: 'box-shadow 0.5s ease, border-color 0.5s ease, color 0.5s ease, background-color 0.5s ease',
+                borderWidth: effectiveTheme === 'light' ? '3px' : '2px',
+                fontWeight: effectiveTheme === 'light' ? '700' : '600'
               }}
             >
               {button.label === "Download Resume" && (

@@ -1,52 +1,183 @@
+'use client';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { useThemeStyles } from '@/hooks/useThemeStyles';
+import { gradientAnimation, fadeInUp, fadeInDown } from '@/styles/animations';
+
 export default function Terms() {
+  const { themeStyles, effectiveTheme } = useThemeStyles();
+
+  const sections = [
+    {
+      id: 1,
+      title: 'Acceptance of Terms',
+      content: 'By accessing and using this portfolio website, you accept and agree to be bound by the terms and provision of this agreement.',
+      listItems: null
+    },
+    {
+      id: 2,
+      title: 'Use License',
+      content: 'Permission is granted to temporarily view the materials (information or software) on this website for personal, non-commercial transitory viewing only.',
+      listItems: null
+    },
+    {
+      id: 3,
+      title: 'Disclaimer',
+      content: 'The materials on this website are provided on an \'as is\' basis. No warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.',
+      listItems: null
+    },
+    {
+      id: 4,
+      title: 'Limitations',
+      content: 'In no event shall this website or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on this website.',
+      listItems: null
+    },
+    {
+      id: 5,
+      title: 'Revisions and Errata',
+      content: 'The materials appearing on this website could include technical, typographical, or photographic errors. This website does not warrant that any of the materials on its website are accurate, complete or current.',
+      listItems: null
+    },
+    {
+      id: 6,
+      title: 'Contact Information',
+      content: 'If you have any questions about these Terms & Conditions, please contact me through the contact form on this website.',
+      listItems: null
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 py-20">
-      <div className="container mx-auto px-4">
-        <h1 className="text-4xl font-bold text-center mb-12">Terms & Conditions</h1>
-        <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">1. Acceptance of Terms</h2>
-            <p className="text-gray-700 mb-4">
-              By accessing and using this portfolio website, you accept and agree to be bound by the terms and provision of this agreement.
+    <div className={`min-h-screen ${themeStyles.sectionBg} transition-all duration-500 ease-in-out`}>
+      {/* Hero Section */}
+      <section className={`py-20 transition-all duration-500 ease-in-out ${
+        effectiveTheme === 'dark' 
+          ? 'bg-gradient-to-b from-black via-black/95 to-black' 
+          : 'bg-gradient-to-b from-gray-50 via-white to-gray-50'
+      }`}>
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            className="text-center mb-12"
+          >
+            <motion.h1
+              className={`text-4xl md:text-5xl font-bold mb-4 transition-colors duration-500 ${themeStyles.headingText}`}
+              variants={fadeInDown}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.span
+                className="inline-block"
+                style={{
+                  backgroundImage: themeStyles.subtitleGradient,
+                  backgroundSize: "200% auto",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  display: "inline-block",
+                  transition: 'background-image 0.5s ease-in-out'
+                }}
+                animate={gradientAnimation}
+              >
+                Terms &
+              </motion.span>{' '}
+              <span className={effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'}>Conditions</span>
+            </motion.h1>
+            <p className={`text-lg ${themeStyles.descriptionText} max-w-2xl mx-auto transition-colors duration-500`}>
+              Please read these terms carefully before using this portfolio website.
             </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">2. Use License</h2>
-            <p className="text-gray-700 mb-4">
-              Permission is granted to temporarily view the materials (information or software) on this website for personal, non-commercial transitory viewing only.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">3. Disclaimer</h2>
-            <p className="text-gray-700 mb-4">
-              The materials on this website are provided on an 'as is' basis. No warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">4. Limitations</h2>
-            <p className="text-gray-700 mb-4">
-              In no event shall this website or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on this website.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">5. Revisions and Errata</h2>
-            <p className="text-gray-700 mb-4">
-              The materials appearing on this website could include technical, typographical, or photographic errors. This website does not warrant that any of the materials on its website are accurate, complete or current.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold mb-4">6. Contact Information</h2>
-            <p className="text-gray-700">
-              If you have any questions about these Terms & Conditions, please contact me through the contact form on this website.
-            </p>
-          </section>
+          </motion.div>
         </div>
-      </div>
+      </section>
+
+      {/* Content Section */}
+      <section className={`py-20 ${themeStyles.sectionBg} relative overflow-hidden transition-all duration-500 ease-in-out`}>
+        {/* Background gradient effect - Theme-aware */}
+        <div className={`absolute inset-0 pointer-events-none transition-all duration-500 ${
+          effectiveTheme === 'dark' 
+            ? 'bg-gradient-to-b from-black via-blue-900/5 to-black' 
+            : 'bg-gradient-to-b from-gray-50 via-blue-50/20 to-gray-50'
+        }`}></div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.7 }}
+            className={`max-w-4xl mx-auto rounded-2xl p-8 md:p-12 border backdrop-blur-sm shadow-xl transition-all duration-500 ${
+              effectiveTheme === 'dark'
+                ? 'bg-gray-900/40 border-gray-800'
+                : 'bg-white/80 border-gray-300'
+            }`}
+          >
+            {sections.map((section, index) => (
+              <motion.section
+                key={section.id}
+                className={index < sections.length - 1 ? "mb-8 md:mb-12" : ""}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
+                <h2 className={`text-2xl md:text-3xl font-semibold mb-4 transition-colors duration-500 ${
+                  effectiveTheme === 'dark' ? 'text-[#FE7743]' : 'text-[#E65100]'
+                }`}>
+                  {section.id}. {section.title}
+                </h2>
+                <p className={`mb-4 leading-relaxed transition-colors duration-500 ${themeStyles.descriptionText}`}>
+                  {section.content}
+                </p>
+                {section.listItems && (
+                  <ul className={`list-disc list-inside space-y-2 mb-4 transition-colors duration-500 ${
+                    effectiveTheme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    {section.listItems.map((item, idx) => (
+                      <li key={idx} className="ml-4">{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </motion.section>
+            ))}
+          </motion.div>
+
+          {/* Back to Home Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="text-center mt-12"
+          >
+            <Link href="/">
+              <motion.button
+                className={`group relative border-2 ${themeStyles.buttonBorder} ${themeStyles.buttonText} px-8 py-3 rounded-full overflow-hidden transition-all duration-500 font-semibold inline-flex items-center gap-2`}
+                whileHover={{ 
+                  scale: 1.05,
+                  boxShadow: themeStyles.buttonHoverShadow
+                }}
+                whileTap={{ scale: 0.98 }}
+                style={{
+                  boxShadow: themeStyles.buttonShadow,
+                  transition: 'box-shadow 0.5s ease, border-color 0.5s ease, color 0.5s ease'
+                }}
+              >
+                <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span className="relative z-10 transition-colors duration-500 group-hover:text-white">
+                  Back to Home
+                </span>
+                <motion.div
+                  className={`absolute inset-0 ${themeStyles.buttonHoverBg} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                  initial={false}
+                />
+              </motion.button>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
     </div>
-  )
+  );
 } 
